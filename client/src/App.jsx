@@ -9,10 +9,12 @@ import Home from './app/pages/Home';
 import Activity from './app/pages/Activity';
 import AdminDashboard from './app/pages/AdminDashboard';
 import ReportSubmission from './app/pages/ReportSubmission';
-import Settings from './app/pages/Settings';
+import Settings from './app/pages/Settings'; 
+import Landing from './app/pages/Landing';
 import IncidentDetail from './app/pages/IncidentDetail';
 import { useEffect } from 'react';
-import { api } from "./app/utils/api";
+import { api } from "./app/utils/api"; 
+
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const token = localStorage.getItem("token");
@@ -48,7 +50,7 @@ export default function App() {
       <AuthSync />
       <RecordsProvider>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/signup" element={<SignUp />} />
