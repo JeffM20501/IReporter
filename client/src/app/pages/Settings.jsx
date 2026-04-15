@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { User, Mail, Phone, Save, Sun, Moon, Camera, UserCircle } from 'lucide-react';
+import { User, Mail, Phone, Save, Sun, Moon, Camera, UserCircle, LogOut } from 'lucide-react';
 import { api } from "../utils/api";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -13,7 +15,6 @@ export default function Settings() {
   const [profilePicFile, setProfilePicFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -30,7 +31,6 @@ export default function Settings() {
     fetchUser();
   }, []);
 
-  
   useEffect(() => {
     const handler = () => {
       setDark(document.documentElement.classList.contains('dark'));
@@ -47,7 +47,6 @@ export default function Settings() {
     window.dispatchEvent(new Event('themechange'));
   };
 
-  
   const handleProfilePicChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -55,59 +54,49 @@ export default function Settings() {
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  
-
-const uploadProfilePic = async () => {
-  if (!profilePicFile) return null;
-  const formData = new FormData();
-  formData.append('profile_pic', profilePicFile);
-  try {
-    const res = await api.uploadProfilePic(formData);
-    if (!res.ok) throw new Error('Upload failed');
-    const data = await res.json();
-    return data.profile_pic_url;
-  } catch (err) {
-    setMessage({ type: 'error', text: 'Profile picture upload failed' });
-    return null;
-  }
-};
+  const uploadProfilePic = async () => {
+    if (!profilePicFile) return null;
+    const formData = new FormData();
+    formData.append('profile_pic', profilePicFile);
+    try {
+      const res = await api.uploadProfilePic(formData);
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      return data.profile_pic_url;
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Profile picture upload failed' });
+      return null;
+    }
+  };
 
   const handleSave = async () => {
-
     setSaving(true);
     setMessage({ type: '', text: '' });
 
     let newProfilePicUrl = user.profile_pic_url;
-    
     if (profilePicFile) {
       const uploadedUrl = await uploadProfilePic();
-      
       if (uploadedUrl) {
         newProfilePicUrl = uploadedUrl;
         setUser(prev => ({ ...prev, profile_pic_url: uploadedUrl }));
       }
     }
 
-    
     try {
       const res = await api.updateUser({
         username: user.username,
         email: user.email,
         phone_number: user.phone_number,
       });
-      
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.message || 'Update failed');
       }
-      
       const updatedUser = await res.json();
       setUser(updatedUser.user);
       localStorage.setItem('user', JSON.stringify(updatedUser.user));
-      
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       setProfilePicFile(null);
-      
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
     } catch (err) {
@@ -116,6 +105,12 @@ const uploadProfilePic = async () => {
       setSaving(false);
     }
   };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
@@ -139,7 +134,7 @@ const uploadProfilePic = async () => {
       <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div className="p-8 space-y-6">
 
-          
+          {/* Profile Picture */}
           <div className="flex flex-col items-center gap-4 pb-4 border-b border-slate-200 dark:border-slate-700">
             <div className="relative">
               <div className="w-28 h-28 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
@@ -159,7 +154,7 @@ const uploadProfilePic = async () => {
             <p className="text-xs text-slate-500 dark:text-slate-400">Click the camera to change profile picture</p>
           </div>
 
-          
+          {/* Username */}
           <div className="flex flex-col gap-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
               Username
@@ -174,7 +169,7 @@ const uploadProfilePic = async () => {
             </div>
           </div>
 
-          
+          {/* Email */}
           <div className="flex flex-col gap-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
               Email Address
@@ -189,7 +184,7 @@ const uploadProfilePic = async () => {
             </div>
           </div>
 
-          
+          {/* Phone Number */}
           <div className="flex flex-col gap-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
               Phone Number (for SMS alerts)
@@ -206,7 +201,7 @@ const uploadProfilePic = async () => {
             <p className="text-[10px] text-slate-400 dark:text-slate-500">Format: +254XXXXXXXXX</p>
           </div>
 
-          
+          {/* Save Button */}
           <button
             onClick={handleSave}
             disabled={saving}
@@ -216,7 +211,7 @@ const uploadProfilePic = async () => {
             {saving ? 'SAVING...' : 'SAVE CHANGES'}
           </button>
 
-          
+          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
             className="w-full py-4 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-black rounded-2xl flex items-center justify-center gap-2 transition-all hover:border-blue-500"
@@ -225,7 +220,16 @@ const uploadProfilePic = async () => {
             {dark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           </button>
 
-          
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-full py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl flex items-center justify-center gap-2 transition-all"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+
+          {/* Message */}
           {message.text && (
             <div className={`text-center text-sm font-bold p-3 rounded-xl ${
               message.type === 'success' 
