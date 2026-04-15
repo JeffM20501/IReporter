@@ -7,6 +7,7 @@ from  .models import *
 from .routes.create_blueprint import api_bp 
 import os 
 import cloudinary 
+from flasgger import Swagger
 
 def create_app(test_config=None):
     app=Flask(__name__)  
@@ -30,6 +31,32 @@ def create_app(test_config=None):
         ],
         supports_credentials=True
         )
+    
+    swagger_config = {
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": 'apispec',
+                "route": '/apispec.json',
+                "rule_filter": lambda rule: True,  # all endpoints
+                "model_filter": lambda tag: True,  # all models
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/api/docs/",
+        "securityDefinitions": {
+            "Bearer": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+            }
+        },
+        "security": [{"Bearer": []}]
+    }
+
+    Swagger(app, config=swagger_config)
     
     app.register_blueprint(api_bp)
     
