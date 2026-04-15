@@ -1,6 +1,34 @@
-# IReporter
+# iReporter – Fight Corruption with Citizen Reports
+
+IReporter is a full‑stack web application that empowers Kenyan citizens to report corruption incidents or request government intervention (e.g., bad roads, collapsed bridges). Users can attach images/videos, add geolocation, and track the status of their reports. Administrators can update report statuses, triggering email and SMS notifications.
+
+---
+**Live Demo** 
+
+- Frontend: [IReporter](https://ireporter-xi.vercel.app)
+
+---
+
+## Features
+
+- **User authentication** – Sign up, login, JWT‑protected routes  
+- **Report management** – Create, edit, delete red‑flag (corruption) and intervention reports  
+- **Geolocation** – Pin incident locations on a Leaflet map (Kenya only)  
+- **Media upload** – Attach images and videos to reports (Cloudinary)  
+- **Admin dashboard** – Change report status (`pending` → `under investigation` → `resolved`/`rejected`)  
+- **Email notifications** – Instant email to the reporter when status changes (Brevo)  
+- **SMS notifications** – Optional SMS via Africa’s Talking (configurable)  
+- **Password reset** – 3‑step code‑based flow via email  
+- **User profile** – Update username, email, phone number, and profile picture  
+- **Live map** – Browse all incidents on an interactive map, search by place or title  
+- **Responsive UI** – Dark/light mode, mobile‑friendly design  
+- **Pagination & filtering** – On both frontend and backend  
+- **CI/CD** – GitHub Actions runs tests automatically on every push  
+
+---
 
 ## 🚀 Getting Started
+
 
 Follow these steps to set up the project locally.
 
@@ -75,7 +103,7 @@ brew services start postgresql    # macOS
 
 **3. Create the database:**
 ```bash
-sudo -u postgres psql -c "CREATE DATABASE ipsc_db;"
+sudo -u postgres psql -c "CREATE DATABASE ireporter_db;"
 sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
 ```
 
@@ -84,7 +112,7 @@ sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
 FLASK_APP=server.app
 FLASK_RUN_PORT=5000
 FLASK_DEBUG=True
-FLASK_SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost:5432/ipsc_db
+FLASK_SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost:5432/ireporter_db
 FLASK_SQLALCHEMY_TRACK_MODIFICATIONS=False
 FLASK_SECRET_KEY=your-secret-key
 FLASK_SESSION_PERMANENT=False
@@ -118,13 +146,6 @@ VITE_API=http://localhost:5000/api/v1
 ---
 
 ## Running the App
-
-### Option 1 — Run both together (recommended)
-```bash
-honcho start -f Procfile
-```
-
-### Option 2 — Run separately
 
 **Backend:**
 ```bash
@@ -182,6 +203,43 @@ Frontend Tests cover:
 
 ---
 
+## Deployment
+
+- **Backend** – Deployed on ![Render](https://render.com/). Environment variables must be set (database URL, secret keys, Brevo API key, etc.).
+
+- **Frontend** – Deployed on ![Vercel](https://vercel.com/). The ``VITE_API_URL`` environment variable points to the production backend.
+
+## API Documentation
+
+Full API reference is available in the backend README (server/README.md).
+All endpoints are prefixed with /api/v1 and require a Bearer token (except signup/login).
+
+Example endpoints:
+
+- ``POST /api/v1/auth/signup`` – Register
+
+- ``POST /api/v1/auth/login`` – Login
+
+- GET /api/v1/records – List reports (paginated)
+
+- ``POST /api/v1/records/create`` – Create a report
+
+- ``PATCH /api/v1/admin/records/<id>/status`` – Admin status update
+
+## Team
+
+- Jeff Muna – Backend & DevOps
+
+- Ashlin – Backend & Database
+
+- Kimberly – Frontend team
+
+## License
+
+**MIT** – feel free to use and modify.
+
+*For questions or issues, please open a GitHub issue.*
+
 ## ERD
 
-![ERD Diagram](./IReporter_dbdiagram.io.png)
+![ERD Diagram](./ireporter_dbdiagram.io.png)
