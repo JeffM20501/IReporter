@@ -1,13 +1,48 @@
 from flask import request, session, make_response
 from flask_restful import Resource,abort
 from ..config import db
-
+from flasgger import swag_from
 class AllResource(Resource):
     def __init__(self, model, resource='items', rules=[]):
         super().__init__()
         self.Model=model
         self.resource=resource
         self.rules=rules
+    
+    @swag_from({
+        'tags': ['Records'],
+        'summary': 'Get all records',
+        'description': 'Returns a paginated list of all records.',
+        'parameters': [
+            {
+                'name': 'per_page',
+                'in': 'query',
+                'type': 'integer',
+                'default': 10,
+                'description': 'Number of records per page'
+            },
+            {
+                'name': 'page',
+                'in': 'query',
+                'type': 'integer',
+                'default': 1,
+                'description': 'Page number'
+            }
+        ],
+        'responses': {
+            200: {
+                'description': 'Successful response',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'data': {'type': 'array', 'items': {'type': 'object'}},
+                        'total': {'type': 'integer'}
+                    }
+                }
+            },
+            401: {'description': 'Authentication required'}
+        }
+    })
     
     def get(self):
         per_page=int(request.args.get('per_page',10))
@@ -26,6 +61,27 @@ class AllResource(Resource):
         except Exception as e: 
             return {'message':[str(e)]},400
     
+    @swag_from({
+        'tags': ['Generic'],
+        'summary': 'Create a new item (generic)',
+        'security': [{'Bearer': []}],
+        'parameters': [
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'description': 'Item fields (varies by model)'
+                }
+            }
+        ],
+        'responses': {
+            201: {'description': 'Item created'},
+            400: {'description': 'Invalid input'},
+            401: {'description': 'Unauthorized'}
+        }
+    })
     def post(self):
         item=self.Model()
         
@@ -48,6 +104,20 @@ class SingleResource(Resource):
         self.rules=rules
         
         
+        
+    @swag_from({
+        'tags': ['Generic'],
+        'summary': 'Get a single item by ID',
+        'security': [{'Bearer': []}],
+        'parameters': [
+            {'name': 'id', 'in': 'path', 'type': 'integer', 'required': True}
+        ],
+        'responses': {
+            200: {'description': 'Item found'},
+            401: {'description': 'Unauthorized'},
+            404: {'description': 'Item not found'}
+        }
+    })
     def get(self,id):
         item = db.session.get(self.Model, id)
         
@@ -56,6 +126,29 @@ class SingleResource(Resource):
         
         return make_response({'data':item.to_dict()},200)
     
+    @swag_from({
+        'tags': ['Generic'],
+        'summary': 'Update an item by ID',
+        'security': [{'Bearer': []}],
+        'parameters': [
+            {'name': 'id', 'in': 'path', 'type': 'integer', 'required': True},
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'description': 'Fields to update'
+                }
+            }
+        ],
+        'responses': {
+            200: {'description': 'Item updated'},
+            400: {'description': 'Invalid input'},
+            401: {'description': 'Unauthorized'},
+            404: {'description': 'Item not found'}
+        }
+    })
     def patch(self,id):
         item = db.session.get(self.Model, id)
         
@@ -73,6 +166,19 @@ class SingleResource(Resource):
             db.session.rollback()
             return {'message':[str(e)]}
     
+    @swag_from({
+        'tags': ['Generic'],
+        'summary': 'Delete an item by ID',
+        'security': [{'Bearer': []}],
+        'parameters': [
+            {'name': 'id', 'in': 'path', 'type': 'integer', 'required': True}
+        ],
+        'responses': {
+            204: {'description': 'Item deleted (no content)'},
+            401: {'description': 'Unauthorized'},
+            404: {'description': 'Item not found'}
+        }
+    })
     def delete(self,id):
         item = db.session.get(self.Model, id)
         
