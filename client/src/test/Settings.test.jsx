@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import Settings from '../app/pages/Settings';
 import { api } from '../app/utils/api';
@@ -13,7 +14,11 @@ vi.mock('../app/utils/api', () => ({
 }));
 
 const renderSettings = () => {
-  render(<Settings />);
+  render(
+    <MemoryRouter>
+      <Settings />
+    </MemoryRouter>
+  );
 };
 
 describe('Settings Page', () => {
