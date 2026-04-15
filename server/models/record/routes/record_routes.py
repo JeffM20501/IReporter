@@ -6,8 +6,36 @@ from ....config import db
 from werkzeug.exceptions import Forbidden
 from ....services.email_service import send_status_update_email
 from ....services.sms_service import sms_service
+from flasgger import swag_from
 
 class RecordResource(Resource):
+    @swag_from({
+        'tags': ['Update Record'],
+        'summary': 'Update a record',
+        'security': [{'Bearer': []}],
+        'parameters': [
+            {'name': 'id', 'in': 'path', 'type': 'integer', 'required': True},
+            {
+                'name': 'body',
+                'in': 'body',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'title': {'type': 'string'},
+                        'description': {'type': 'string'},
+                        'latitude': {'type': 'number'},
+                        'longitude': {'type': 'number'}
+                    }
+                }
+            }
+        ],
+        'responses': {
+            200: {'description': 'Record updated'},
+            401: {'description': 'Unauthorized'},
+            403: {'description': 'Forbidden (not owner or status not pending)'},
+            404: {'description': 'Record not found'}
+        }
+    })
     @login_required
     def patch(self,id):
         record=db.session.get(Record,id)
@@ -43,6 +71,33 @@ class RecordResource(Resource):
         return make_response({},204)
 
 class RecordCreateResource(Resource):
+    @swag_from({
+        'tags': ['Create Record'],
+        'summary': 'Create a new report',
+        'parameters': [
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'title': {'type': 'string', 'example': 'Corruption at City Hall'},
+                        'description': {'type': 'string', 'example': 'Detailed description...'},
+                        'type': {'type': 'string', 'enum': ['red flag', 'intervention']},
+                        'latitude': {'type': 'number', 'format': 'float'},
+                        'longitude': {'type': 'number', 'format': 'float'}
+                    },
+                    'required': ['title', 'description', 'type']
+                }
+            }
+        ],
+        'responses': {
+            201: {'description': 'Report created'},
+            400: {'description': 'Invalid input'},
+            401: {'description': 'Unauthorized'}
+        }
+    })
     @login_required
     def post(self):
         data=request.get_json()
@@ -65,6 +120,36 @@ class RecordCreateResource(Resource):
             return {'message':str(e)},400
 
 class AdminRecordResource(Resource):
+    @swag_from({
+        'tags': ['Admin record update'],
+        'summary': 'Change status of a record (admin only)',
+        'security': [{'Bearer': []}],
+        'parameters': [
+            {'name': 'id', 'in': 'path', 'type': 'integer', 'required': True},
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'status': {
+                            'type': 'string',
+                            'enum': ['pending', 'under investigation', 'rejected', 'resolved']
+                        }
+                    },
+                    'required': ['status']
+                }
+            }
+        ],
+        'responses': {
+            200: {'description': 'Status updated (email and SMS sent)'},
+            400: {'description': 'Invalid status value'},
+            401: {'description': 'Unauthorized'},
+            403: {'description': 'Forbidden (admin only)'},
+            404: {'description': 'Record not found'}
+        }
+    })
     @admin_required 
     def patch(self, id):
         record = db.session.get(Record, id)

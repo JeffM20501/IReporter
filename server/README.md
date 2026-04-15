@@ -80,6 +80,13 @@ gunicorn 'server.app:create_app()'
 
 ---
 
+## API Documentation
+
+Interactive Swagger documentation is available at:
+
+- **Local**: `http://localhost:5020/api/docs/`
+- **Production**: `https://your-backend.onrender.com/api/docs/`
+
 ## API Endpoints
 
 - All endpoints are prefixed with /api/v1.

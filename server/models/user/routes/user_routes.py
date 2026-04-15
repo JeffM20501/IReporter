@@ -9,8 +9,43 @@ from datetime import datetime, timedelta
 from ....services.email_service import send_password_reset_code_email
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from ....services.cloudinary import upload_image
+from flasgger import swag_from
 
 class SignupResource(Resource):
+    @swag_from({
+        'tags': ['Authentication sign up'],
+        'summary': 'Register a new user',
+        'parameters': [
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'username': {'type': 'string', 'example': 'johndoe'},
+                        'email': {'type': 'string', 'example': 'john@example.com'},
+                        'password': {'type': 'string', 'format': 'password', 'example': 'secret123'},
+                        'phone_number': {'type': 'string', 'example': '+254712345678'}
+                    },
+                    'required': ['username', 'email', 'password']
+                }
+            }
+        ],
+        'responses': {
+            201: {
+                'description': 'User created',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'token': {'type': 'string'},
+                        'user': {'type': 'object'}
+                    }
+                }
+            },
+            400: {'description': 'Missing fields or duplicate email/username'}
+        }
+    })
     def post(self):
         data = request.get_json()
         username = data.get('username', '').strip().lower() 
@@ -45,6 +80,38 @@ class SignupResource(Resource):
         return {'token': token, 'user': user.to_dict()}, 201
 
 class LoginResource(Resource):
+    @swag_from({
+        'tags': ['Authentication login'],
+        'summary': 'Log in and receive JWT token',
+        'parameters': [
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'email': {'type': 'string', 'example': 'john@example.com'},
+                        'password': {'type': 'string', 'format': 'password', 'example': 'secret123'}
+                    },
+                    'required': ['email', 'password']
+                }
+            }
+        ],
+        'responses': {
+            200: {
+                'description': 'Login successful',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'token': {'type': 'string'},
+                        'user': {'type': 'object'}
+                    }
+                }
+            },
+            401: {'description': 'Invalid credentials'}
+        }
+    })
     def post(self):
         try:
             data = request.get_json()
@@ -66,6 +133,23 @@ class LogoutResource(Resource):
         return {'message': 'Logged out'}, 200
     
 class CurrentUserResource(Resource):
+    @swag_from({
+        'tags': ['Authentication current user'],
+        'summary': 'Get current user profile',
+        'security': [{'Bearer': []}],
+        'responses': {
+            200: {
+                'description': 'User data',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'user': {'type': 'object'}
+                    }
+                }
+            },
+            401: {'description': 'Unauthorized'}
+        }
+    })
     @login_required
     def get(self):
         # g.current_user is set by @login_required --remember
@@ -101,6 +185,28 @@ class CurrentUserResource(Resource):
             return {'message': str(e)}, 400
     
 class RequestResetCodeResource(Resource):
+    @swag_from({
+        'tags': ['Request password reset'],
+        'summary': 'Request a password reset code (6-digit)',
+        'parameters': [
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'email': {'type': 'string', 'example': 'user@example.com'}
+                    },
+                    'required': ['email']
+                }
+            }
+        ],
+        'responses': {
+            200: {'description': 'Reset code sent (if email exists)'},
+            400: {'description': 'Email missing'}
+        }
+    })
     def post(self):
         data = request.get_json()
         email = data.get('email', '').strip().lower()
@@ -115,6 +221,37 @@ class RequestResetCodeResource(Resource):
         return {'message': 'If your email is registered, you will receive a reset code.'}, 200
 
 class VerifyResetCodeResource(Resource):
+    @swag_from({
+        'tags': ['Verify Password Reset Code'],
+        'summary': 'Verify the 6-digit code and get a reset token',
+        'parameters': [
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'email': {'type': 'string'},
+                        'code': {'type': 'string', 'example': '123456'}
+                    },
+                    'required': ['email', 'code']
+                }
+            }
+        ],
+        'responses': {
+            200: {
+                'description': 'Code verified',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'reset_token': {'type': 'string'}
+                    }
+                }
+            },
+            400: {'description': 'Invalid or expired code'}
+        }
+    })
     def post(self):
         data = request.get_json()
         email = data.get('email', '').strip().lower()
@@ -140,6 +277,31 @@ class VerifyResetCodeResource(Resource):
         return {'message': 'Code verified', 'reset_token': reset_token}, 200
 
 class ResetPasswordWithCodeResource(Resource):
+    @swag_from({
+        'tags': ['Password Reset'],
+        'summary': 'Set new password using reset token',
+        'parameters': [
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'email': {'type': 'string'},
+                        'reset_token': {'type': 'string'},
+                        'password': {'type': 'string', 'format': 'password'}
+                    },
+                    'required': ['email', 'reset_token', 'password']
+                }
+            }
+        ],
+        'responses': {
+            200: {'description': 'Password updated'},
+            400: {'description': 'Invalid or expired token'},
+            404: {'description': 'User not found'}
+        }
+    })
     def post(self):
         data = request.get_json()
         email = data.get('email', '').strip().lower()
@@ -166,6 +328,34 @@ class ResetPasswordWithCodeResource(Resource):
 
 
 class UploadProfilePicResource(Resource):
+    @swag_from({
+        'tags': ['User Profile'],
+        'summary': 'Upload a profile picture',
+        'security': [{'Bearer': []}],
+        'consumes': ['multipart/form-data'],
+        'parameters': [
+            {
+                'name': 'profile_pic',
+                'in': 'formData',
+                'type': 'file',
+                'required': True,
+                'description': 'Image file (jpg, png, etc.)'
+            }
+        ],
+        'responses': {
+            200: {
+                'description': 'Profile picture updated',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'profile_pic_url': {'type': 'string'}
+                    }
+                }
+            },
+            400: {'description': 'No file provided'},
+            401: {'description': 'Unauthorized'}
+        }
+    })
     @login_required
     def post(self):
         """Upload a profile picture to Cloudinary and update user."""
