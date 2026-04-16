@@ -92,15 +92,15 @@ export default function Landing() {
         </div>
 
         {/* RIGHT DIAGONAL IMAGE */}
-        <div className="relative h-96">
+        <div className="relative h-96 md:h-[500px] lg:h-[600px]">
           <div className="absolute -bottom-5 -right-5 w-full h-full bg-blue-50 border border-slate-200 rounded-2xl" />
           <div className="absolute inset-0 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xl">
             <img
               src={heroImage}
               alt="Nairobi news scene"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain bg-slate-100"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent" />
           </div>
           <div className="absolute -top-3 -left-3 w-full h-full bg-white border border-slate-200 rounded-2xl opacity-30" />
         </div>
