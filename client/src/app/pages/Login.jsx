@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../utils/api";
 import { useRecords } from "../context/RecordsContext";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 const validate = (email, password) => {
   const errors = {};
@@ -19,6 +20,7 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const {refreshRecords}=useRecords()
   const handleLogin = async (e) => {
@@ -34,14 +36,15 @@ export default function Login() {
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+        setIsRedirecting(true);
         await refreshRecords()
         navigate("/home");
       } else {
         setServerError(data.message || "Invalid email or password.");
       }
     } catch {
-      localStorage.setItem("token", "demo-token");
-      localStorage.setItem("user", JSON.stringify({ username: "Demo User", is_admin: true }));
+      setIsRedirecting(true);
+      await refreshRecords();
       navigate("/home");
     } finally {
       setLoading(false);
@@ -54,52 +57,55 @@ export default function Login() {
     } text-slate-900 dark:text-white placeholder:text-slate-500 focus:ring-2 outline-none transition-all`;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#020c1b] text-white p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl font-black text-2xl mb-4">IR</div>
-          <h1 className="text-4xl font-black tracking-tight">IReporter</h1>
-          <p className="text-slate-400 mt-2">Civic Justice & Whistleblower Platform</p>
-        </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4">
-          {serverError && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-xl">
-              {serverError}
-            </div>
-          )}
-          <div className="space-y-3">
-            <div>
-              <input type="email" placeholder="Email" value={email}
-                className={inputClass("email")}
-                onChange={e => { setEmail(e.target.value); setErrors({...errors, email: ""}); }}
-              />
-              {errors.email && <p className="text-red-400 text-xs mt-1 pl-1">{errors.email}</p>}
-            </div>
-            <div>
-              <input type="password" placeholder="Password" value={password}
-                className={inputClass("password")}
-                onChange={e => { setPassword(e.target.value); setErrors({...errors, password: ""}); }}
-              />
-              {errors.password && <p className="text-red-400 text-xs mt-1 pl-1">{errors.password}</p>}
-            </div>
+    <>
+      {isRedirecting && <LoadingOverlay />}
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#020c1b] text-white p-4">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl font-black text-2xl mb-4">IR</div>
+            <h1 className="text-4xl font-black tracking-tight">IReporter</h1>
+            <p className="text-slate-400 mt-2">Civic Justice & Whistleblower Platform</p>
           </div>
-          <button onClick={handleLogin} disabled={loading}
-            className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-black text-white transition-all">
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-          <div className="text-center space-y-2 pt-2">
-            <Link to="/forgot-password" className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
-              Forgot Password?
-            </Link>
-            <p className="text-slate-500 text-sm">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-blue-400 hover:text-blue-300 transition-colors">
-                Create an Account
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-4">
+            {serverError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-xl">
+                {serverError}
+              </div>
+            )}
+            <div className="space-y-3">
+              <div>
+                <input type="email" placeholder="Email" value={email}
+                  className={inputClass("email")}
+                  onChange={e => { setEmail(e.target.value); setErrors({...errors, email: ""}); }}
+                />
+                {errors.email && <p className="text-red-400 text-xs mt-1 pl-1">{errors.email}</p>}
+              </div>
+              <div>
+                <input type="password" placeholder="Password" value={password}
+                  className={inputClass("password")}
+                  onChange={e => { setPassword(e.target.value); setErrors({...errors, password: ""}); }}
+                />
+                {errors.password && <p className="text-red-400 text-xs mt-1 pl-1">{errors.password}</p>}
+              </div>
+            </div>
+            <button onClick={handleLogin} disabled={loading}
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-black text-white transition-all">
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+            <div className="text-center space-y-2 pt-2">
+              <Link to="/forgot-password" className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
+                Forgot Password?
               </Link>
-            </p>
+              <p className="text-slate-500 text-sm">
+                Don't have an account?{" "}
+                <Link to="/signup" className="text-blue-400 hover:text-blue-300 transition-colors">
+                  Create an Account
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

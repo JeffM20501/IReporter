@@ -16,17 +16,20 @@ export function RecordsProvider({ children }) {
 
   const fetchRecords = () => {
     const token = localStorage.getItem('token');
-    if (!token) { setLoading(false); return; }
-    api.getRecords()
-    .then(recordsList => {    
-      setRecords(Array.isArray(recordsList) ? recordsList : []);
+    if (!token) {
       setLoading(false);
-    })
-    .catch(err => {
-      console.error("Failed to fetch records:", err);
-      setRecords([]);
-      setLoading(false);
-    });
+      return Promise.resolve(); // return resolved promise
+    }
+    return api.getRecords() // ← return the fetch promise
+      .then(recordsList => {
+        setRecords(Array.isArray(recordsList) ? recordsList : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch records:", err);
+        setRecords([]);
+        setLoading(false);
+      });
   };
 
   useEffect(() => { fetchRecords(); }, []);
@@ -50,7 +53,7 @@ export function RecordsProvider({ children }) {
     setRecords(prev => [newRecord, ...prev]);
   };
 
-  const refreshRecords = () => fetchRecords();
+  const refreshRecords = () =>{return fetchRecords();}
 
   return (
     <RecordsContext.Provider value={{ records, loading, updateStatus, deleteRecord, editRecord, addRecord, refreshRecords }}>

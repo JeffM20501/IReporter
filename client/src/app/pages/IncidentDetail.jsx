@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import { ArrowLeft, Clock, User, MapPin, Pencil, Trash2, Save, X } from 'lucide-react';
 import { api } from "../utils/api";
 import { reverseGeocode } from '../utils/geocode';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 const STATUS_ORDER = ['pending', 'under investigation', 'resolved'];
 
@@ -56,11 +57,7 @@ export default function IncidentDetail() {
   }, [record]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
-        Loading incident...
-      </div>
-    );
+    return <LoadingOverlay />;
   }
 
   if (!record) {
