@@ -62,7 +62,7 @@ export default function IncidentDetail() {
 
   if (!record) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
+      <div className="flex items-center justify-center h-full text-red-500 dark:text-red-400">
         Incident not found.
       </div>
     );

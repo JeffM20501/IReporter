@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { User, Mail, Phone, Save, Sun, Moon, Camera, UserCircle, LogOut } from 'lucide-react';
 import { api } from "../utils/api";
 import { useNavigate } from "react-router-dom";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -112,11 +113,7 @@ export default function Settings() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
-        Loading profile...
-      </div>
-    );
+    return <LoadingOverlay />;
   }
 
   if (!user) {
