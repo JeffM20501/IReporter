@@ -5,10 +5,17 @@ import { useEffect, useState } from "react";
 export default function Landing() {
   const navigate = useNavigate();
   const [showTitle, setShowTitle] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowTitle(true), 200);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // Check if user is logged in (token exists)
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
   }, []);
 
   const fancyFont = "font-serif font-extrabold tracking-wide";
@@ -37,10 +44,10 @@ export default function Landing() {
         </nav>
 
         <button
-          onClick={() => navigate("/login")}
+          onClick={() => navigate(isLoggedIn ? "/home" : "/login")}
           className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition"
         >
-          Submit Report
+          {isLoggedIn ? "Go to Dashboard" : "Submit Report"}
         </button>
       </header>
 
@@ -70,16 +77,16 @@ export default function Landing() {
 
           <div className="flex gap-3 mt-8">
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate(isLoggedIn ? "/home" : "/login")}
               className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition"
             >
-              File a Report
+              {isLoggedIn ? "Go to Dashboard" : "File a Report"}
             </button>
             <button
-              onClick={() => navigate("/signup")}
+              onClick={() => navigate(isLoggedIn ? "/home" : "/signup")}
               className="px-5 py-3 rounded-xl border border-blue-600 text-blue-600 hover:bg-blue-50 transition"
             >
-              Join the Movement
+              {isLoggedIn ? "Dashboard" : "Join the Movement"}
             </button>
           </div>
         </div>
@@ -217,10 +224,10 @@ export default function Landing() {
           </p>
 
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate(isLoggedIn ? "/home" : "/login")}
             className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-xl transition transform hover:scale-105"
           >
-            File Your Report Now
+            {isLoggedIn ? "Go to Dashboard" : "File Your Report Now"}
           </button>
           <p className="text-xs text-slate-300 mt-4">
             ✨ Your identity stays protected. No personal data is shared.

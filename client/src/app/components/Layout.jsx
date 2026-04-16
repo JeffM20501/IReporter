@@ -38,7 +38,11 @@ export default function Layout() {
         collapsed ? "w-20" : "w-64"
       } bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800`}>
 
-        <div className="flex items-center gap-3 mb-10 px-2">
+        {/* Clickable Logo */}
+        <div 
+          onClick={() => navigate("/")}
+          className="flex items-center gap-3 mb-10 px-2 cursor-pointer hover:opacity-80 transition-opacity"
+        >
           <div className="bg-blue-600 p-2 rounded-lg font-black text-white flex-shrink-0">IR</div>
           {!collapsed && (
             <h1 className="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">IReporter</h1>

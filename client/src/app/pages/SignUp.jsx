@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../utils/api";
+import { useRecords } from "../context/RecordsContext"; 
 
 const validate = (username, email, password, confirm, phone_number) => {
   const errors = {};
@@ -8,7 +9,6 @@ const validate = (username, email, password, confirm, phone_number) => {
   else if (username.length < 3) errors.username = "Username must be at least 3 characters";
   if (!email) errors.email = "Email is required";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email";
-  // if (!phone_number||phone_number.length<=13) errors.phone_number='Phone Number needs to be 13 characters long'
   if (!password) errors.password = "Password is required";
   else if (password.length < 6) errors.password = "Password must be at least 6 characters";
   if (!confirm) errors.confirm = "Please confirm your password";
@@ -18,9 +18,11 @@ const validate = (username, email, password, confirm, phone_number) => {
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const { refreshRecords } = useRecords(); 
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [phone_number, setphone_number]=useState("")
+  const [phone_number, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState({});
@@ -35,11 +37,12 @@ export default function SignUp() {
     if (Object.keys(errs).length > 0) return;
     setLoading(true);
     try {
-      const res = await api.register(username, email, password,phone_number);
+      const res = await api.register(username, email, password, phone_number);
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+        await refreshRecords(); 
         navigate("/home");
       } else {
         setServerError(data.error || data.message || "Registration failed.");
@@ -88,7 +91,7 @@ export default function SignUp() {
             <div>
               <input type="text" placeholder="Phone Number eg. +254... (optional)" value={phone_number}
                 className={inputClass("phone_number")}
-                onChange={e => { setphone_number(e.target.value); setErrors({...errors, phone_number: ""}); }}
+                onChange={e => { setPhoneNumber(e.target.value); setErrors({...errors, phone_number: ""}); }}
               />
               {errors.phone_number && <p className="text-red-400 text-xs mt-1 pl-1">{errors.phone_number}</p>}
             </div>
