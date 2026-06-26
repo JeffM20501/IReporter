@@ -1,9 +1,23 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecords } from "../context/RecordsContext";
 import { PlusCircle, Flag, Search, Clock, Trash2, FileText, MapPin, Activity } from "lucide-react";
 import { UserCircle } from 'lucide-react';
-import logoFallback from '../../assets/breaking.jpg'; // 👈 import logo
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  Area, AreaChart
+} from 'recharts';
+import logoFallback from '../../assets/breaking.jpg';
+
+const COLORS = {
+  pending: '#F97316',      // orange
+  underInvestigation: '#8B5CF6', // purple
+  rejected: '#EF4444',     // red
+  resolved: '#10B981',     // emerald
+  redFlag: '#EF4444',
+  intervention: '#3B82F6', // blue
+};
 
 export default function Home() {
   const navigate = useNavigate();
@@ -12,56 +26,66 @@ export default function Home() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState(null);
+  const [timeRange, setTimeRange] = useState(30); // days
 
   const myRecords = records.filter(r => r.user_id === currentUser?.id);
 
-  // Summary stats
+  
   const stats = {
     total: myRecords.length,
     redFlags: myRecords.filter(r => r.type === "red flag").length,
     investigating: myRecords.filter(r => r.status === "investigating" || r.status === "under investigation").length,
     resolved: myRecords.filter(r => r.status === "resolved").length,
+    rejected: myRecords.filter(r => r.status === "rejected").length,
+    pending: myRecords.filter(r => r.status === "pending").length,
+    interventions: myRecords.filter(r => r.type === "intervention").length,
   };
 
-  // Detailed stats: type + status
-  const typeStatusMap = {
-    "red flag": {
-      pending: 0,
-      "under investigation": 0,
-      rejected: 0,
-      resolved: 0,
-    },
-    intervention: {
-      pending: 0,
-      "under investigation": 0,
-      rejected: 0,
-      resolved: 0,
-    },
-  };
-
-  myRecords.forEach(record => {
-    const type = record.type;
-    const status = record.status;
-    if (typeStatusMap[type] && typeStatusMap[type][status] !== undefined) {
-      typeStatusMap[type][status]++;
+  
+  const trendData = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() - timeRange);
+    const filtered = myRecords.filter(r => new Date(r.created_at) >= start);
+    const map = {};
+    for (let d = 0; d < timeRange; d++) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - d);
+      const key = date.toISOString().slice(0,10);
+      map[key] = { date: key, count: 0 };
     }
-  });
+    filtered.forEach(r => {
+      const key = new Date(r.created_at).toISOString().slice(0,10);
+      if (map[key]) map[key].count++;
+    });
+    return Object.values(map).reverse();
+  }, [myRecords, timeRange]);
 
-  const statusConfig = {
-    pending: { label: "Pending", color: "border-b-orange-500", textColor: "text-orange-500" },
-    "under investigation": { label: "Under Investigation", color: "border-b-purple-500", textColor: "text-purple-500" },
-    rejected: { label: "Rejected", color: "border-b-red-600", textColor: "text-red-600" },
-    resolved: { label: "Resolved", color: "border-b-emerald-500", textColor: "text-emerald-500" },
+  
+  const statusData = useMemo(() => {
+    const statuses = ['pending', 'under investigation', 'rejected', 'resolved'];
+    return statuses.map(s => ({
+      name: s,
+      value: stats[s] || 0,
+    })).filter(d => d.value > 0);
+  }, [stats]);
+
+  
+  // const typeData = useMemo(() => [
+  //   { name: 'Red Flags', value: stats.redFlags },
+  //   { name: 'Interventions', value: stats.interventions },
+  // ], [stats]);
+
+  const statusLabelMap = {
+    pending: 'Pending',
+    'under investigation': 'Under Investigation',
+    rejected: 'Rejected',
+    resolved: 'Resolved',
   };
 
-  const statusColor = (status) => {
-    if (status === "pending") return "bg-red-500/10 text-red-500 dark:text-red-400";
-    if (status === "investigating" || status === "under investigation") return "bg-orange-500/10 text-orange-500 dark:text-orange-400";
-    if (status === "resolved") return "bg-emerald-500/10 text-emerald-500 dark:text-emerald-400";
-    if (status === "rejected") return "bg-slate-500/10 text-slate-500";
-    return "bg-slate-500/10 text-slate-500";
-  };
+  const getStatusColor = (status) => COLORS[status] || '#64748B';
 
+  
   const handleDeleteClick = (e, record) => {
     e.stopPropagation();
     setRecordToDelete(record);
@@ -76,13 +100,6 @@ export default function Home() {
     }
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
-      Loading your dashboard...
-    </div>
-  );
-
-  // Helper to get thumbnail
   const getThumbnail = (record) => {
     if (record.images && record.images.length > 0) {
       return record.images[0].image_url;
@@ -90,8 +107,22 @@ export default function Home() {
     return logoFallback;
   };
 
+  const statusColor = (status) => {
+    if (status === "pending") return "bg-orange-500/10 text-orange-500 dark:text-orange-400";
+    if (status === "investigating" || status === "under investigation") return "bg-purple-500/10 text-purple-500 dark:text-purple-400";
+    if (status === "resolved") return "bg-emerald-500/10 text-emerald-500 dark:text-emerald-400";
+    if (status === "rejected") return "bg-red-500/10 text-red-500 dark:text-red-400";
+    return "bg-slate-500/10 text-slate-500";
+  };
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
+      Loading your dashboard...
+    </div>
+  );
+
   return (
-    <div className="space-y-8 max-w-6xl mx-auto px-4 py-6">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 py-6">
       {/* WELCOME HEADER */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-900 rounded-3xl p-6 text-white shadow-lg">
         <div className="flex items-center gap-4">
@@ -131,56 +162,96 @@ export default function Home() {
         </div>
       </div>
 
-      {/* STATS SECTION */}
-      <div className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm border-b-4 border-b-blue-500">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Total Reports</p>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">{String(stats.total).padStart(2, '0')}</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm border-b-4 border-b-red-500">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Red Flags</p>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">{String(stats.redFlags).padStart(2, '0')}</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm border-b-4 border-b-orange-500">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Investigating</p>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">{String(stats.investigating).padStart(2, '0')}</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm border-b-4 border-b-emerald-500">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Resolved</p>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">{String(stats.resolved).padStart(2, '0')}</p>
-          </div>
+      {/* STATS CARDS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm border-b-4 border-b-blue-500">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Total Reports</p>
+          <p className="text-3xl font-black text-slate-900 dark:text-white">{String(stats.total).padStart(2, '0')}</p>
         </div>
-
-        {Object.keys(typeStatusMap).some(type => Object.values(typeStatusMap[type]).some(v => v > 0)) && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Object.entries(typeStatusMap).map(([type, statuses]) => {
-              const hasAny = Object.values(statuses).some(v => v > 0);
-              if (!hasAny) return null;
-              return (
-                <div key={type} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
-                    {type === "red flag" ? "Red Flags" : "Interventions"}
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(statuses).map(([status, count]) => {
-                      if (count === 0) return null;
-                      const config = statusConfig[status];
-                      return (
-                        <span key={status} className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${config.textColor} bg-slate-100 dark:bg-slate-700`}>
-                          {config.label}: {count}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm border-b-4 border-b-red-500">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Red Flags</p>
+          <p className="text-3xl font-black text-slate-900 dark:text-white">{String(stats.redFlags).padStart(2, '0')}</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm border-b-4 border-b-orange-500">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Investigating</p>
+          <p className="text-3xl font-black text-slate-900 dark:text-white">{String(stats.investigating).padStart(2, '0')}</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm border-b-4 border-b-emerald-500">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Resolved</p>
+          <p className="text-3xl font-black text-slate-900 dark:text-white">{String(stats.resolved).padStart(2, '0')}</p>
+        </div>
       </div>
 
-      {/* TWO‑COLUMN LAYOUT */}
+      {/* CHARTS SECTION */}
+      {myRecords.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Line chart: reports over time with filter */}
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                Reports Over Time (Last {timeRange} Days)
+              </h3>
+              <div className="flex gap-1">
+                {[7, 14, 30, 90].map(days => (
+                  <button
+                    key={days}
+                    onClick={() => setTimeRange(days)}
+                    className={`px-2 py-1 text-xs font-bold rounded transition-all ${
+                      timeRange === days
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                    }`}
+                  >
+                    {days}d
+                  </button>
+                ))}
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={trendData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(d) => d.slice(5)} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+                <Area type="monotone" dataKey="count" stroke="#3B82F6" fillOpacity={1} fill="url(#colorCount)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Donut chart: status distribution */}
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Status Breakdown</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  paddingAngle={2}
+                  dataKey="value"
+                  label={({ name, percent }) => `${statusLabelMap[name] || name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {statusData.map((entry) => (
+                    <Cell key={entry.name} fill={getStatusColor(entry.name)} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value, name) => [`${value} reports`, statusLabelMap[name] || name]} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* TWO‑COLUMN LAYOUT: Reports + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
           <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
