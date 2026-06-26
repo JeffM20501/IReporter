@@ -9,6 +9,33 @@ IReporter is a full‑stack web application that empowers Kenyan citizens to rep
 
 ---
 
+##  Table of Contents
+
+- [iReporter – Fight Corruption with Citizen Reports](#ireporter--fight-corruption-with-citizen-reports)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Screenshots](#screenshots)
+    - [Desktop View](#desktop-view)
+    - [Mobile View](#mobile-view)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [1. Clone the Repository](#1-clone-the-repository)
+  - [Backend Setup](#backend-setup)
+    - [PostgreSQL Setup](#postgresql-setup)
+  - [Frontend Setup](#frontend-setup)
+    - [Frontend Environment Variables](#frontend-environment-variables)
+  - [Running the App](#running-the-app)
+  - [Frontend Architecture](#frontend-architecture)
+    - [Key Pages](#key-pages)
+    - [Running Frontend Tests](#running-frontend-tests)
+  - [Deployment](#deployment)
+  - [API Documentation](#api-documentation)
+  - [Team](#team)
+  - [License](#license)
+  - [ERD](#erd)
+
+---
+
 ## Features
 
 - **User authentication** – Sign up, login, JWT‑protected routes  
@@ -27,8 +54,47 @@ IReporter is a full‑stack web application that empowers Kenyan citizens to rep
 
 ---
 
-## 🚀 Getting Started
+## Screenshots
 
+### Desktop View
+
+![l0](./screenshots/0.png)
+
+
+![l1](./screenshots/l1.png)
+
+
+![l2](./screenshots/l2.png)
+
+
+![l3](./screenshots/l3.png)
+
+
+![l4](./screenshots/l4.png)
+
+
+![l5](./screenshots/l5.png)
+
+*Example of the dashboard on a desktop browser.*
+
+
+### Mobile View
+
+![1](./screenshots/1.png)
+
+![2](./screenshots/2.png)
+
+![3](./screenshots/3.png)
+
+![4](./screenshots/4.png)
+
+![5](./screenshots/5.png)
+
+*Responsive design on a mobile device.*
+
+---
+
+## Getting Started
 
 Follow these steps to set up the project locally.
 
@@ -45,7 +111,6 @@ Follow these steps to set up the project locally.
 ```bash
 git clone https://github.com/your-org/IReporter.git
 cd IReporter
-```
 
 ---
 
@@ -96,18 +161,21 @@ pip install -r requirements.txt
 **1. Install PostgreSQL** — [Ubuntu guide](https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-20-04-quickstart)
 
 **2. Start the service:**
+
 ```bash
 sudo systemctl start postgresql   # Linux
 brew services start postgresql    # macOS
 ```
 
 **3. Create the database:**
+
 ```bash
 sudo -u postgres psql -c "CREATE DATABASE ireporter_db;"
 sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
 ```
 
 **4. Create `./.env`:**
+
 ```env
 FLASK_APP=server.app
 FLASK_RUN_PORT=5000
@@ -119,6 +187,7 @@ FLASK_SESSION_PERMANENT=False
 ```
 
 **5. Run migrations:**
+
 ```bash
 flask db upgrade
 ```
@@ -133,6 +202,7 @@ npm install
 ```
 
 **Create `client/.env`:**
+
 ```env
 VITE_API=http://localhost:5000/api/v1
 ```
@@ -146,6 +216,13 @@ VITE_API=http://localhost:5000/api/v1
 ---
 
 ## Running the App
+
+**Seed data first**-->This is optional:
+```bash
+python -m sever.seed
+```
+
+- Make sure you run the above command in the root of the project
 
 **Backend:**
 ```bash

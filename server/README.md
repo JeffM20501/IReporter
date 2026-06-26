@@ -1,5 +1,38 @@
 # IReporter Backend – API Documentation & Setup
 
+##  Table of Contents
+
+- [IReporter Backend – API Documentation \& Setup](#ireporter-backend--api-documentation--setup)
+  - [Table of Contents](#table-of-contents)
+  - [Tech Stack](#tech-stack)
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Environment Variables](#environment-variables)
+  - [Database Migrations](#database-migrations)
+  - [Running Server](#running-server)
+      - [Development](#development)
+      - [Production](#production)
+  - [API Documentation](#api-documentation)
+  - [API Endpoints](#api-endpoints)
+    - [Authentication](#authentication)
+    - [Profile Picture](#profile-picture)
+    - [Users (Admin only)](#users-admin-only)
+    - [Records](#records)
+  - [Admin Actions](#admin-actions)
+    - [Images\&Videos](#imagesvideos)
+    - [Password Reset](#password-reset)
+  - [Testing](#testing)
+  - [Deployment](#deployment)
+    - [Backend (Render)](#backend-render)
+    - [Frontend (Vercel / Netlify)](#frontend-vercel--netlify)
+  - [CI/CD Pipeline](#cicd-pipeline)
+  - [Postman Collection](#postman-collection)
+  - [Troubleshooting](#troubleshooting)
+  - [Contributors](#contributors)
+
+---
+
+
 ## Tech Stack
 
 | Category       | Technology                          |
