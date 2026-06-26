@@ -5,7 +5,7 @@ from sqlalchemy.orm import validates
 class Record(db.Model, SerializerMixin):
     __tablename__='records'
     
-    serialize_rules=('-images.record', '-videos.record',)
+    serialize_rules=('-images.record', '-videos.record', '-user.records')
     
     id=db.Column(db.Integer, primary_key=True)
     user_id=db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)

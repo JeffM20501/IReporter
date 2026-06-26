@@ -1,11 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { Shield, Eye, Users, Flag, Heart } from "lucide-react";
+import { Shield, Eye, Users, Flag, Heart, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
+import { api } from "../utils/api";
+import logoFallback from '../../assets/breaking.jpg';
 
 export default function Landing() {
   const navigate = useNavigate();
   const [showTitle, setShowTitle] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [recentReports, setRecentReports] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowTitle(true), 200);
@@ -13,9 +17,21 @@ export default function Landing() {
   }, []);
 
   useEffect(() => {
-    // Check if user is logged in (token exists)
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
+  }, []);
+
+  // Fetch recent reports using the api helper
+  useEffect(() => {
+    api.getRecentReports()
+      .then(data => {
+        setRecentReports(data || []);
+        setReportsLoading(false);
+      })
+      .catch(() => {
+        setRecentReports([]);
+        setReportsLoading(false);
+      });
   }, []);
 
   const fancyFont = "font-serif font-extrabold tracking-wide";
@@ -41,6 +57,7 @@ export default function Landing() {
           <a href="#about" className="hover:text-blue-600 transition">About</a>
           <a href="#how" className="hover:text-blue-600 transition">How It Works</a>
           <a href="#why" className="hover:text-blue-600 transition">Why iReporter</a>
+          <a href="#recent" className="hover:text-blue-600 transition">Recent Reports</a>
         </nav>
 
         <button
@@ -57,7 +74,6 @@ export default function Landing() {
           <p className="text-slate-500 mb-3 flex items-center gap-2">
             <Flag size={16} className="text-blue-600" /> For a Better Kenya
           </p>
-
           <h1 className="text-5xl leading-tight">
             <span
               className={`text-blue-600 ${fancyFont} italic transition-all duration-700 ease-out
@@ -68,13 +84,11 @@ export default function Landing() {
             <br />
             <span className={`text-slate-900 ${fancyFont}`}>Defend Our Nation.</span>
           </h1>
-
           <p className="mt-5 text-slate-600 max-w-md">
             iReporter is a secure, citizen‑driven platform where every Kenyan can
             report corruption, demand accountability, and help build the transparent
             Kenya we deserve.
           </p>
-
           <div className="flex gap-3 mt-8">
             <button
               onClick={() => navigate(isLoggedIn ? "/home" : "/login")}
@@ -90,8 +104,6 @@ export default function Landing() {
             </button>
           </div>
         </div>
-
-        {/* RIGHT DIAGONAL IMAGE */}
         <div className="relative h-96 md:h-[500px] lg:h-[600px]">
           <div className="absolute -bottom-5 -right-5 w-full h-full bg-blue-50 border border-slate-200 rounded-2xl" />
           <div className="absolute inset-0 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xl">
@@ -119,7 +131,6 @@ export default function Landing() {
             From your report to real action – every step counts.
           </p>
         </div>
-
         <div className="grid md:grid-cols-3 gap-6">
           <div className={`p-8 rounded-2xl border bg-white ${cardHover}`}>
             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
@@ -131,7 +142,6 @@ export default function Landing() {
               – anonymously if you wish.
             </p>
           </div>
-
           <div className={`p-8 rounded-2xl border bg-white ${cardHover}`}>
             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
               <span className="text-blue-600 font-black text-xl">2</span>
@@ -142,7 +152,6 @@ export default function Landing() {
               and classify the report for action.
             </p>
           </div>
-
           <div className={`p-8 rounded-2xl border bg-white ${cardHover}`}>
             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
               <span className="text-blue-600 font-black text-xl">3</span>
@@ -168,32 +177,93 @@ export default function Landing() {
             integrity.
           </p>
         </div>
-
         <div className="grid md:grid-cols-3 gap-6">
           <div className={`p-6 bg-slate-50 border rounded-2xl ${cardHover}`}>
             <Shield className="text-blue-600" size={32} />
             <h3 className="mt-3 font-semibold text-lg">Secure & Anonymous</h3>
-            <p className="text-slate-500 text-sm">
-              Your identity is protected. Report without fear of retaliation.
-            </p>
+            <p className="text-slate-500 text-sm">Your identity is protected. Report without fear of retaliation.</p>
           </div>
-
           <div className={`p-6 bg-slate-50 border rounded-2xl ${cardHover}`}>
             <Eye className="text-blue-600" size={32} />
             <h3 className="mt-3 font-semibold text-lg">Total Transparency</h3>
-            <p className="text-slate-500 text-sm">
-              Track your report’s status – from “pending” to “resolved” – in real time.
-            </p>
+            <p className="text-slate-500 text-sm">Track your report’s status – from “pending” to “resolved” – in real time.</p>
           </div>
-
           <div className={`p-6 bg-slate-50 border rounded-2xl ${cardHover}`}>
             <Users className="text-blue-600" size={32} />
             <h3 className="mt-3 font-semibold text-lg">Community Powered</h3>
-            <p className="text-slate-500 text-sm">
-              Thousands of Kenyans already speak up. Your voice adds weight.
-            </p>
+            <p className="text-slate-500 text-sm">Thousands of Kenyans already speak up. Your voice adds weight.</p>
           </div>
         </div>
+      </section>
+
+      {/* RECENT REPORTS – PUBLIC SECTION */}
+      <section id="recent" className="px-12 py-16 bg-slate-50">
+        <div className="text-center mb-12">
+          <Clock size={28} className="text-blue-600 mx-auto mb-2" />
+          <h2 className={`text-4xl text-slate-900 ${fancyFont}`}>Recent Reports</h2>
+          <p className="text-slate-500 max-w-xl mx-auto mt-2">
+            Browse the most recent reports from the community.
+          </p>
+        </div>
+
+        {reportsLoading ? (
+          <p className="text-center text-slate-500">Loading recent reports...</p>
+        ) : recentReports.length === 0 ? (
+          <p className="text-center text-slate-500">No reports yet. Be the first to file one!</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {recentReports.map((report) => {
+              // Get the first image URL from the images array
+              const imageUrl = report.images?.[0]?.image_url;
+              return (
+                <div
+                  key={report.id}
+                  className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer hover:border-blue-300"
+                  onClick={() => navigate(isLoggedIn ? `/home/incident/${report.id}` : "/login")}
+                >
+                  <div className="p-4 space-y-2">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={report.title}
+                        className="w-full h-32 object-cover rounded-lg mb-2"
+                      />
+                    ) : (
+                      <img
+                        src={logoFallback}
+                        alt={report.title}
+                        className="w-full h-32 object-cover rounded-lg mb-2"
+                      />
+                    )}
+                    <h3 className="font-bold text-slate-900 text-sm line-clamp-1">{report.title}</h3>
+                    <p className="text-xs text-slate-600 line-clamp-2">{report.description || "No description"}</p>
+                    <div className="flex items-center justify-between text-[10px] text-slate-500">
+                      <span>{new Date(report.created_at).toLocaleDateString()}</span>
+                      <span className={`px-2 py-0.5 rounded-full font-bold uppercase ${
+                        report.status === "pending" ? "bg-orange-500/10 text-orange-500" :
+                        report.status === "under investigation" ? "bg-purple-500/10 text-purple-500" :
+                        report.status === "rejected" ? "bg-red-500/10 text-red-500" :
+                        "bg-emerald-500/10 text-emerald-500"
+                      }`}>
+                        {report.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {!isLoggedIn && (
+          <p className="text-center text-sm text-slate-500 mt-6">
+            <button
+              onClick={() => navigate("/login")}
+              className="text-blue-600 hover:underline font-bold"
+            >
+              Log in
+            </button> to view full details and file your own report.
+          </p>
+        )}
       </section>
 
       {/* CALL TO ACTION – Patriotic */}
@@ -208,7 +278,6 @@ export default function Landing() {
       >
         <div className="absolute inset-0 bg-slate-900/80" />
         <div className="absolute inset-0 bg-gradient-to-t from-blue-900/40 to-transparent" />
-
         <div className="relative z-20 max-w-3xl mx-auto">
           <div className="flex justify-center gap-4 mb-6">
             <span className="text-6xl">🇰🇪</span>
@@ -217,12 +286,10 @@ export default function Landing() {
             <span className="block">Silence Enables Corruption.</span>
             <span className="block text-blue-300 mt-2">Speak for Kenya.</span>
           </h2>
-
           <p className="mt-6 mb-10 text-lg font-semibold leading-relaxed text-slate-200">
             Every report is a brick in the wall of justice. Don't wait – be the
             whistleblower your country needs.
           </p>
-
           <button
             onClick={() => navigate(isLoggedIn ? "/home" : "/login")}
             className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-xl transition transform hover:scale-105"
@@ -250,21 +317,18 @@ export default function Landing() {
               accountability.
             </p>
           </div>
-
           <div>
             <p className="text-blue-400 font-bold mb-2">Platform</p>
             <p className="text-slate-400 hover:text-white cursor-pointer transition">How It Works</p>
             <p className="text-slate-400 hover:text-white cursor-pointer transition mt-1">Submit Report</p>
             <p className="text-slate-400 hover:text-white cursor-pointer transition mt-1">View Reports</p>
           </div>
-
           <div>
             <p className="text-blue-400 font-bold mb-2">Resources</p>
             <p className="text-slate-400 hover:text-white cursor-pointer transition">Legal Support</p>
             <p className="text-slate-400 hover:text-white cursor-pointer transition mt-1">Safety Guide</p>
             <p className="text-slate-400 hover:text-white cursor-pointer transition mt-1">FAQs</p>
           </div>
-
           <div>
             <p className="text-blue-400 font-bold mb-2">Connect</p>
             <p className="text-slate-400 hover:text-white cursor-pointer transition">Twitter</p>
@@ -272,7 +336,6 @@ export default function Landing() {
             <p className="text-slate-400 hover:text-white cursor-pointer transition mt-1">Facebook</p>
           </div>
         </div>
-
         <div className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-500 text-sm">
           <p>© 2026 iReporter – A citizen‑led initiative for a corruption‑free Kenya.</p>
           <p className="mt-2 flex justify-center gap-2 items-center">

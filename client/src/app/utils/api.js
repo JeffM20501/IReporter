@@ -73,6 +73,11 @@ export const api = {
   getRecord: (id) =>
     fetch(`${BASE}/records/${id}`, { headers: authHeaders() }),
 
+  getRecentReports:()=>
+    fetch(`${BASE}/public/recent-reports`)
+      .then(res=>res.ok?res.json():Promise.reject())
+      .then(data=>data.data),
+
   createRecord: (body) =>
     fetch(`${BASE}/records/create`, {
       method: "POST",

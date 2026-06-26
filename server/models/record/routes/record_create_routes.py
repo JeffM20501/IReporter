@@ -19,3 +19,9 @@ api_v1.add_resource(
     '/records/create',
     endpoint='/records/create'
 )
+
+api_v1.add_resource(
+    RecentReportResource,
+    '/public/recent-reports',
+    endpoint='/public/recent-reports'
+)

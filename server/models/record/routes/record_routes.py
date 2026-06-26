@@ -70,6 +70,14 @@ class RecordResource(Resource):
         
         return make_response({},204)
 
+class RecentReportResource(Resource):
+    def get(self):
+        try:
+            recent=Record.query.order_by(Record.created_at.desc()).limit(10).all()
+            return make_response({'data':[r.to_dict() for r in recent]},200)
+        except Exception as e:
+            return {"message":str(e)},500
+
 class RecordCreateResource(Resource):
     @swag_from({
         'tags': ['Create Record'],
