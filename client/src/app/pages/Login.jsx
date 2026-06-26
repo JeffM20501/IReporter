@@ -21,8 +21,10 @@ export default function Login() {
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [overlayMessage, setOverlayMessage] = useState("");
 
-  const {refreshRecords}=useRecords()
+  const { refreshRecords } = useRecords();
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setServerError("");
@@ -36,14 +38,26 @@ export default function Login() {
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+
+        // Show overlay with step 1 message
         setIsRedirecting(true);
-        await refreshRecords()
+        setOverlayMessage("Authenticating user...");
+        // Short pause so the user can read the message
+        await new Promise((resolve) => setTimeout(resolve, 600));
+
+        // Step 2: loading data
+        setOverlayMessage("Loading your data...");
+        await refreshRecords();
         navigate("/home");
       } else {
         setServerError(data.message || "Invalid email or password.");
       }
     } catch {
+      // Fallback for demo / offline
       setIsRedirecting(true);
+      setOverlayMessage("Authenticating user...");
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      setOverlayMessage("Loading your data...");
       await refreshRecords();
       navigate("/home");
     } finally {
@@ -58,7 +72,7 @@ export default function Login() {
 
   return (
     <>
-      {isRedirecting && <LoadingOverlay />}
+      {isRedirecting && <LoadingOverlay message={overlayMessage} />}
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#020c1b] text-white p-4">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">

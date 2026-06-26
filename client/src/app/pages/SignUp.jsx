@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../utils/api";
-import { useRecords } from "../context/RecordsContext"; 
+import { useRecords } from "../context/RecordsContext";
 import LoadingOverlay from "../components/LoadingOverlay";
 
 const validate = (username, email, password, confirm, phone_number) => {
@@ -19,7 +19,7 @@ const validate = (username, email, password, confirm, phone_number) => {
 
 export default function SignUp() {
   const navigate = useNavigate();
-  const { refreshRecords } = useRecords(); 
+  const { refreshRecords } = useRecords();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -30,6 +30,7 @@ export default function SignUp() {
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [overlayMessage, setOverlayMessage] = useState("");
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -44,7 +45,12 @@ export default function SignUp() {
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+
         setIsRedirecting(true);
+        setOverlayMessage("Creating your account...");
+        await new Promise((resolve) => setTimeout(resolve, 600));
+
+        setOverlayMessage("Setting up your dashboard...");
         await refreshRecords();
         navigate("/home");
       } else {
@@ -64,7 +70,7 @@ export default function SignUp() {
 
   return (
     <>
-      {isRedirecting && <LoadingOverlay />}
+      {isRedirecting && <LoadingOverlay message={overlayMessage} />}
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#020c1b] text-white p-4">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
