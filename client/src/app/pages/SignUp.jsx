@@ -38,28 +38,45 @@ export default function SignUp() {
     const errs = validate(username, email, password, confirm, phone_number);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
+
     setLoading(true);
     try {
       const res = await api.register(username, email, password, phone_number);
       const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
 
-        setIsRedirecting(true);
-        setOverlayMessage("Creating your account...");
-        await new Promise((resolve) => setTimeout(resolve, 600));
-
-        setOverlayMessage("Setting up your dashboard...");
-        await refreshRecords();
-        navigate("/home");
-      } else {
+      if (!res.ok) {
         setServerError(data.error || data.message || "Registration failed.");
+        setLoading(false);
+        return;
       }
-    } catch {
-      setServerError("Backend offline. Please try again later.");
-    } finally {
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      setIsRedirecting(true);
+      setOverlayMessage("Creating your account...");
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      setOverlayMessage("Setting up your dashboard...");
+      try {
+        await refreshRecords();
+      } catch (refreshErr) {
+        console.error("Failed to load user records:", refreshErr);
+        setServerError("We had trouble loading your data. Please try refreshing the page.");
+        setIsRedirecting(false);
+        setLoading(false);
+        return;
+      }
+
+      navigate("/home");
+    } catch (err) {
+      console.error("Signup error:", err);
+      setServerError("Could not connect to the server. Please check your internet connection and try again.");
       setLoading(false);
+    } finally {
+      if (!isRedirecting) {
+        setLoading(false);
+      }
     }
   };
 

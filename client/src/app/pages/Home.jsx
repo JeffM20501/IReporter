@@ -39,6 +39,7 @@ export default function Home() {
     rejected: myRecords.filter(r => r.status === "rejected").length,
     pending: myRecords.filter(r => r.status === "pending").length,
     interventions: myRecords.filter(r => r.type === "intervention").length,
+    underInvestigation: myRecords.filter(r => r.status === "under investigation").length,
   };
 
   
@@ -63,11 +64,15 @@ export default function Home() {
 
   
   const statusData = useMemo(() => {
-    const statuses = ['pending', 'under investigation', 'rejected', 'resolved'];
-    return statuses.map(s => ({
-      name: s,
-      value: stats[s] || 0,
-    })).filter(d => d.value > 0);
+    const map = {
+      pending: stats.pending,
+      'under investigation': stats.underInvestigation,
+      rejected: stats.rejected,
+      resolved: stats.resolved,
+    };
+    return Object.entries(map)
+      .filter(([_, value]) => value > 0)
+      .map(([name, value]) => ({ name, value }));
   }, [stats]);
 
   

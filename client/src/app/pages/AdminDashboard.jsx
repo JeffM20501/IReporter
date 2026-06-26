@@ -63,14 +63,17 @@ export default function AdminDashboard() {
     return Object.values(map).reverse();
   }, [records, timeRange]);
 
-  // --- Status distribution (donut) ---
   const statusChartData = useMemo(() => {
-    const statuses = ['pending', 'under investigation', 'rejected', 'resolved'];
-    return statuses.map(s => ({
-      name: s,
-      value: statusStats[s] || 0,
-    })).filter(d => d.value > 0);
-  }, [statusStats]);
+    const statusMap = {
+      pending: pending,
+      'under investigation': underInvestigation,
+      rejected: rejected,
+      resolved: resolved,
+    };
+    return Object.entries(statusMap)
+      .filter(([_, value]) => value > 0)
+      .map(([name, value]) => ({ name, value }));
+  }, [pending, underInvestigation, rejected, resolved]);
 
   // --- Type distribution (donut) – kept for overview ---
   const typeChartData = useMemo(() => [
@@ -188,7 +191,7 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Status Distribution */}
+          {/* Status Distribution – fixed labels */}
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Status Distribution</h3>
             <ResponsiveContainer width="100%" height={200}>
@@ -198,11 +201,12 @@ export default function AdminDashboard() {
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
-                  outerRadius={80}
+                  outerRadius={70}
                   paddingAngle={2}
                   dataKey="value"
                   label={({ name, percent }) => `${statusLabelMap[name] || name} ${(percent * 100).toFixed(0)}%`}
                   labelLine={false}
+                  fontSize={11}
                 >
                   {statusChartData.map((entry) => (
                     <Cell key={entry.name} fill={getStatusColor(entry.name)} />
@@ -213,7 +217,7 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Type Distribution (Donut) – kept for quick glance */}
+          {/* Type Distribution – fixed labels */}
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Type Overview</h3>
             <ResponsiveContainer width="100%" height={200}>
@@ -223,11 +227,12 @@ export default function AdminDashboard() {
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
-                  outerRadius={80}
+                  outerRadius={70}
                   paddingAngle={2}
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   labelLine={false}
+                  fontSize={11}
                 >
                   <Cell fill={TYPE_COLORS['red flag']} />
                   <Cell fill={TYPE_COLORS['intervention']} />
@@ -237,14 +242,14 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Type Breakdown Bar Chart – explicit comparison */}
+          {/* Type Breakdown Bar Chart – fixed Y‑axis width */}
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Red Flags vs Interventions</h3>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={typeBreakdownData} layout="vertical" margin={{ top: 5, right: 5, left: 20, bottom: 5 }}>
+              <BarChart data={typeBreakdownData} layout="vertical" margin={{ top: 5, right: 20, left: 70, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis type="number" tick={{ fontSize: 10 }} />
-                <YAxis type="category" dataKey="type" tick={{ fontSize: 12, fontWeight: 'bold' }} width={100} />
+                <YAxis type="category" dataKey="type" tick={{ fontSize: 12, fontWeight: 'bold' }} width={70} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                 <Bar dataKey="count" fill="#3B82F6" radius={[0, 4, 4, 0]}>
                   {typeBreakdownData.map((entry, index) => (

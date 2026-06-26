@@ -31,37 +31,49 @@ export default function Login() {
     const errs = validate(email, password);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
+
     setLoading(true);
     try {
       const res = await api.login(email, password);
       const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
 
-        // Show overlay with step 1 message
-        setIsRedirecting(true);
-        setOverlayMessage("Authenticating user...");
-        // Short pause so the user can read the message
-        await new Promise((resolve) => setTimeout(resolve, 600));
-
-        // Step 2: loading data
-        setOverlayMessage("Loading your data...");
-        await refreshRecords();
-        navigate("/home");
-      } else {
+      if (!res.ok) {
         setServerError(data.message || "Invalid email or password.");
+        setLoading(false);
+        return;
       }
-    } catch {
-      // Fallback for demo / offline
+
+      // Successful login
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       setIsRedirecting(true);
       setOverlayMessage("Authenticating user...");
       await new Promise((resolve) => setTimeout(resolve, 600));
+
       setOverlayMessage("Loading your data...");
-      await refreshRecords();
+      try {
+        await refreshRecords();
+      } catch (refreshErr) {
+        console.error("Failed to load user records:", refreshErr);
+        setServerError("We had trouble loading your data. Please try refreshing the page.");
+        setIsRedirecting(false);
+        setLoading(false);
+        return;
+      }
+
       navigate("/home");
-    } finally {
+    } catch (err) {
+      // Network error or backend unreachable
+      console.error("Login error:", err);
+      setServerError("Could not connect to the server. Please check your internet connection and try again.");
       setLoading(false);
+    } finally {
+      // If we didn't navigate, turn off loading
+      // (loading is already set to false in error cases)
+      if (!isRedirecting) {
+        setLoading(false);
+      }
     }
   };
 
