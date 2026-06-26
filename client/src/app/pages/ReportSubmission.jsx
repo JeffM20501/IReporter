@@ -15,7 +15,6 @@ const validate = (formData, location) => {
   return errors;
 };
 
-// File size limits (in bytes)
 const MAX_IMAGE_SIZE = 8 * 1024 * 1024; // 8 MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100 MB
 
@@ -23,7 +22,7 @@ export default function ReportSubmission() {
   const routerState = useLocation();
   const [formData, setFormData] = useState({ title: '', description: '', type: 'red flag' });
   const [location, setLocation] = useState(routerState.state?.location || null);
-  const [images, setImages] = useState([]); // store File objects
+  const [images, setImages] = useState([]);
   const [video, setVideo] = useState(null);
   const [timestamp] = useState(new Date());
   const [errors, setErrors] = useState({});
@@ -33,28 +32,20 @@ export default function ReportSubmission() {
 
   const { addRecord } = useRecords();
 
-  // Remove image by index
   const removeImage = (indexToRemove) => {
     setImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
-  // Clear video
-  const clearVideo = () => {
-    setVideo(null);
-  };
+  const clearVideo = () => setVideo(null);
 
-  // Handle image selection with size validation
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = [];
     const oversized = [];
 
     for (const file of files) {
-      if (file.size <= MAX_IMAGE_SIZE) {
-        validFiles.push(file);
-      } else {
-        oversized.push(file.name);
-      }
+      if (file.size <= MAX_IMAGE_SIZE) validFiles.push(file);
+      else oversized.push(file.name);
     }
 
     if (oversized.length > 0) {
@@ -67,14 +58,11 @@ export default function ReportSubmission() {
     }
   };
 
-  // Handle video selection with size validation
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    if (file.size <= MAX_VIDEO_SIZE) {
-      setVideo(file);
-    } else {
+    if (file.size <= MAX_VIDEO_SIZE) setVideo(file);
+    else {
       setSubmitError(`Video "${file.name}" exceeds 100MB limit.`);
       setTimeout(() => setSubmitError(""), 5000);
     }
@@ -120,9 +108,9 @@ export default function ReportSubmission() {
   };
 
   const inputClass = (field) =>
-    `w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-900 border ${
+    `w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border ${
       errors[field] ? "border-red-500 focus:ring-red-500" : "border-slate-200 dark:border-slate-700 focus:ring-blue-500"
-    } text-slate-900 dark:text-white outline-none focus:ring-2 placeholder:text-slate-500 transition-all`;
+    } text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 outline-none transition-all`;
 
   if (submitted) return (
     <div className="max-w-md mx-auto mt-20 text-center space-y-4">
@@ -147,89 +135,113 @@ export default function ReportSubmission() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <header>
-        <h1 className="text-3xl font-black italic text-slate-900 dark:text-white">FILE A REPORT</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm uppercase tracking-widest">Provide evidence for action</p>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <header className="mb-8">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white">File a Report</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">Provide details, location, and evidence for your incident.</p>
       </header>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="space-y-4 bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 text-xs">
+      <div className="space-y-6">
+        
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 space-y-6">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-4 py-2 rounded-xl">
             <span>🕒</span>
-            <span>Report time: <span className="text-slate-900 dark:text-white font-bold">
+            <span>Report time: <span className="font-bold text-slate-900 dark:text-white">
               {timestamp.toLocaleString('en-KE', { dateStyle: 'medium', timeStyle: 'short' })}
             </span></span>
           </div>
 
-          <select
-            className="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            onChange={e => setFormData({...formData, type: e.target.value})}
-          >
-            <option value="red flag">🚩 Red-Flag (Corruption)</option>
-            <option value="intervention">🛠️ Intervention (Infrastructure)</option>
-          </select>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
+              Report Type
+            </label>
+            <select
+              className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              value={formData.type}
+              onChange={e => setFormData({...formData, type: e.target.value})}
+            >
+              <option value="red flag"> Red‑Flag (Corruption)</option>
+              <option value="intervention"> Intervention (Infrastructure)</option>
+            </select>
+          </div>
 
           <div>
-            <input placeholder="Short Title" value={formData.title}
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
+              Title
+            </label>
+            <input
+              placeholder="Brief title (min 5 characters)"
+              value={formData.title}
               className={inputClass("title")}
               onChange={e => { setFormData({...formData, title: e.target.value}); setErrors({...errors, title: ""}); }}
             />
-            {errors.title && <p className="text-red-400 text-xs mt-1 pl-1 flex items-center gap-1"><AlertCircle size={12}/>{errors.title}</p>}
+            {errors.title && <p className="text-red-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12}/>{errors.title}</p>}
           </div>
 
           <div>
-            <textarea placeholder="Detailed Description... (min 20 characters)" value={formData.description}
-              className={`${inputClass("description")} h-40`}
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
+              Description
+            </label>
+            <textarea
+              placeholder="Detailed description (min 20 characters)"
+              value={formData.description}
+              className={`${inputClass("description")} min-h-[120px] resize-y`}
               onChange={e => { setFormData({...formData, description: e.target.value}); setErrors({...errors, description: ""}); }}
             />
-            {errors.description && <p className="text-red-400 text-xs mt-1 pl-1 flex items-center gap-1"><AlertCircle size={12}/>{errors.description}</p>}
+            {errors.description && <p className="text-red-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12}/>{errors.description}</p>}
           </div>
 
-          {/* Image upload with preview and removal */}
-          <div>
-            <label className="flex items-center justify-center gap-2 p-4 bg-slate-100 dark:bg-slate-900 rounded-xl cursor-pointer hover:bg-blue-500/10 transition-all border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400">
-              <Camera size={20}/>
-              <span className="text-xs font-bold">{images.length > 0 ? `${images.length} image(s) selected` : 'SELECT IMAGES'}</span>
-              <input type="file" multiple hidden accept="image/*" onChange={handleImageChange} />
-            </label>
-            {images.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {images.map((img, idx) => (
-                  <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-                    <img src={URL.createObjectURL(img)} alt={`preview ${idx}`} className="w-full h-20 object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(idx)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100 transition-all"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
+                Images (optional)
+              </label>
+              <label className="flex items-center justify-center gap-2 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400">
+                <Camera size={20}/>
+                <span className="text-sm font-medium">{images.length > 0 ? `${images.length} image(s) selected` : 'Select images'}</span>
+                <input type="file" multiple hidden accept="image/*" onChange={handleImageChange} />
+              </label>
+              {images.length > 0 && (
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {images.map((img, idx) => (
+                    <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                      <img src={URL.createObjectURL(img)} alt={`preview ${idx}`} className="w-full h-20 object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(idx)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100 transition-all"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* Video upload with removal */}
-          <div>
-            <label className="flex items-center justify-center gap-2 p-4 bg-slate-100 dark:bg-slate-900 rounded-xl cursor-pointer hover:bg-blue-500/10 transition-all border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400">
-              <Video size={20}/>
-              <span className="text-xs font-bold">{video ? 'VIDEO SELECTED' : 'SELECT VIDEO'}</span>
-              <input type="file" hidden accept="video/*" onChange={handleVideoChange} />
-            </label>
-            {video && (
-              <div className="mt-3 flex items-center justify-between bg-slate-100 dark:bg-slate-900 p-2 rounded-lg">
-                <span className="text-xs truncate">{video.name}</span>
-                <button
-                  type="button"
-                  onClick={clearVideo}
-                  className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                >
-                  <X size={12} />
-                </button>
-              </div>
-            )}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
+                Video (optional)
+              </label>
+              <label className="flex items-center justify-center gap-2 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400">
+                <Video size={20}/>
+                <span className="text-sm font-medium">{video ? 'Video selected' : 'Select video'}</span>
+                <input type="file" hidden accept="video/*" onChange={handleVideoChange} />
+              </label>
+              {video && (
+                <div className="mt-3 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
+                  <span className="text-sm truncate">{video.name}</span>
+                  <button
+                    type="button"
+                    onClick={clearVideo}
+                    className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {submitError && (
@@ -239,22 +251,48 @@ export default function ReportSubmission() {
           )}
         </div>
 
-        <div className="space-y-4">
-          <div className={`h-[400px] rounded-3xl overflow-hidden shadow-2xl border-4 ${errors.location ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}>
-            <Map onLocationSelect={(coords) => { setLocation(coords); setErrors({...errors, location: ""}); }} selectedLocation={location} />
+        
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                Pin Location
+              </h3>
+              <p className="text-xs text-slate-400 dark:text-slate-500">Click on the map to set the incident location.</p>
+            </div>
+            {location && (
+              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full">
+                ✓ Pinned
+              </span>
+            )}
           </div>
-          {errors.location && <p className="text-red-400 text-xs pl-1 flex items-center gap-1"><AlertCircle size={12}/>{errors.location}</p>}
-          {location && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-              📍 {location[0].toFixed(5)}, {location[1].toFixed(5)}
-            </p>
+          <div className={`h-64 ${errors.location ? 'ring-4 ring-red-500' : ''}`}>
+            <Map
+              onLocationSelect={(coords) => { setLocation(coords); setErrors({...errors, location: ""}); }}
+              selectedLocation={location}
+            />
+          </div>
+          {errors.location && (
+            <div className="p-3 bg-red-500/10 border-t border-red-500/20 text-red-400 text-sm flex items-center gap-2">
+              <AlertCircle size={14}/> {errors.location}
+            </div>
           )}
-          <button onClick={handleSubmit} disabled={loading}
-            className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 transition-all">
-            <Send size={20}/>
-            {loading ? "Submitting..." : "SUBMIT TO AUTHORITIES"}
-          </button>
+          {location && (
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 text-xs text-slate-500 dark:text-slate-400 text-center border-t border-slate-200 dark:border-slate-700">
+              📍 {location[0].toFixed(5)}, {location[1].toFixed(5)}
+            </div>
+          )}
         </div>
+
+        
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          <Send size={20}/>
+          {loading ? "Submitting..." : "Submit Report"}
+        </button>
       </div>
     </div>
   );
