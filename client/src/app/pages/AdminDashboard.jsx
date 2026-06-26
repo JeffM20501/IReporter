@@ -11,15 +11,45 @@ import logoFallback from '../../assets/breaking.jpg';
 const PER_PAGE = 10;
 
 const STATUS_COLORS = {
-  pending: '#F97316',      // orange
-  underInvestigation: '#8B5CF6', // purple
-  rejected: '#EF4444',     // red
-  resolved: '#10B981',     // emerald
+  pending: '#F97316',
+  underInvestigation: '#8B5CF6',
+  rejected: '#EF4444',
+  resolved: '#10B981',
 };
 
 const TYPE_COLORS = {
   'red flag': '#EF4444',
   'intervention': '#3B82F6',
+};
+
+
+const REGION_COLORS = {
+  'Nairobi': '#3B82F6',      
+  'Rift Valley': '#10B981',  
+  'Coast': '#F59E0B',        
+  'Central': '#8B5CF6',      
+  'Western': '#EC4899',      
+  'Nyanza': '#06B6D4',       
+  'Eastern': '#F97316',      
+  'North Eastern': '#EF4444',
+  'Other': '#64748B',        
+  'Unknown': '#94A3B8',      
+};
+
+const getRegion = (lat, lng) => {
+  if (lat == null || lng == null) return 'Unknown';
+  if (lat >= -1.4 && lat <= -1.2 && lng >= 36.7 && lng <= 36.9) return 'Nairobi';
+  if (lat >= -1.0 && lat <= 1.0 && lng >= 35.0 && lng <= 36.5) return 'Rift Valley';
+  if (lat >= -4.5 && lat <= -2.5 && lng >= 39.0 && lng <= 40.5) return 'Coast';
+  if (lat >= -1.2 && lat <= -0.3 && lng >= 36.5 && lng <= 37.5) return 'Central'
+  if (lat >= 0.0 && lat <= 1.5 && lng >= 34.0 && lng <= 35.0) return 'Western';
+  
+  if (lat >= -1.0 && lat <= -0.2 && lng >= 34.0 && lng <= 35.0) return 'Nyanza';
+  
+  if (lat >= -3.0 && lat <= -1.0 && lng >= 37.0 && lng <= 39.0) return 'Eastern';
+  
+  if (lat >= -1.0 && lat <= 3.0 && lng >= 38.0 && lng <= 41.5) return 'North Eastern';
+  return 'Other';
 };
 
 export default function AdminDashboard() {
@@ -32,7 +62,7 @@ export default function AdminDashboard() {
   const [showFilters, setShowFilters] = useState(false);
   const [timeRange, setTimeRange] = useState(30);
 
-  // --- Stats ---
+  
   const total = records.length;
   const redFlags = records.filter(r => r.type === "red flag").length;
   const interventions = records.filter(r => r.type === "intervention").length;
@@ -41,9 +71,7 @@ export default function AdminDashboard() {
   const rejected = records.filter(r => r.status === "rejected").length;
   const resolved = records.filter(r => r.status === "resolved").length;
 
-  const statusStats = { pending, underInvestigation, rejected, resolved };
-
-  // --- Trend data (last N days) ---
+  
   const trendData = useMemo(() => {
     const now = new Date();
     const start = new Date(now);
@@ -63,6 +91,7 @@ export default function AdminDashboard() {
     return Object.values(map).reverse();
   }, [records, timeRange]);
 
+  
   const statusChartData = useMemo(() => {
     const statusMap = {
       pending: pending,
@@ -75,17 +104,24 @@ export default function AdminDashboard() {
       .map(([name, value]) => ({ name, value }));
   }, [pending, underInvestigation, rejected, resolved]);
 
-  // --- Type distribution (donut) – kept for overview ---
+  
   const typeChartData = useMemo(() => [
     { name: 'Red Flags', value: redFlags },
     { name: 'Interventions', value: interventions },
   ], [redFlags, interventions]);
 
-  // --- Type breakdown bar chart (explicit comparison) ---
-  const typeBreakdownData = useMemo(() => [
-    { type: 'Red Flags', count: redFlags },
-    { type: 'Interventions', count: interventions },
-  ], [redFlags, interventions]);
+  
+  const regionData = useMemo(() => {
+    const regionCounts = {};
+    records.forEach(record => {
+      const region = getRegion(record.latitude, record.longitude);
+      regionCounts[region] = (regionCounts[region] || 0) + 1;
+    });
+    return Object.entries(regionCounts)
+      .filter(([_, count]) => count > 0)
+      .map(([region, count]) => ({ region, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [records]);
 
   const statusLabelMap = {
     pending: 'Pending',
@@ -96,7 +132,7 @@ export default function AdminDashboard() {
 
   const getStatusColor = (status) => STATUS_COLORS[status] || '#64748B';
 
-  // --- Table filters ---
+  
   const filteredRecords = records.filter(record => {
     const matchesSearch = record.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || record.type === typeFilter;
@@ -116,16 +152,8 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-black italic text-slate-900 dark:text-white">ADMIN CONTROL</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm uppercase tracking-widest">Investigation Management</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-500 transition"
-          >
-            <Filter size={18} />
-          </button>
-          <div className="bg-blue-600/10 text-blue-600 dark:text-blue-400 p-3 rounded-xl flex items-center gap-2 font-bold text-sm">
-            <Shield size={18}/> AUTHORIZED ACCESS
-          </div>
+        <div className="bg-blue-600/10 text-blue-600 dark:text-blue-400 p-3 rounded-xl flex items-center gap-2 font-bold text-sm">
+          <Shield size={18}/> AUTHORIZED ACCESS
         </div>
       </div>
 
@@ -191,7 +219,7 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Status Distribution – fixed labels */}
+          {/* Status Distribution */}
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Status Distribution</h3>
             <ResponsiveContainer width="100%" height={200}>
@@ -217,7 +245,7 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Type Distribution – fixed labels */}
+          {/* Type Overview */}
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Type Overview</h3>
             <ResponsiveContainer width="100%" height={200}>
@@ -242,69 +270,108 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Type Breakdown Bar Chart – fixed Y‑axis width */}
+          {/* Regional Breakdown – vertical bar chart with colors */}
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
-            <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Red Flags vs Interventions</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={typeBreakdownData} layout="vertical" margin={{ top: 5, right: 20, left: 70, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis type="number" tick={{ fontSize: 10 }} />
-                <YAxis type="category" dataKey="type" tick={{ fontSize: 12, fontWeight: 'bold' }} width={70} />
-                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
-                <Bar dataKey="count" fill="#3B82F6" radius={[0, 4, 4, 0]}>
-                  {typeBreakdownData.map((entry, index) => (
-                    <Cell key={entry.type} fill={entry.type === 'Red Flags' ? '#EF4444' : '#3B82F6'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Reports by Region</h3>
+            {regionData.length === 0 ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">No location data available.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={regionData} margin={{ top: 5, right: 5, left: 0, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis
+                    dataKey="region"
+                    tick={{ fontSize: 10 }}
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    height={50}
+                  />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {regionData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={REGION_COLORS[entry.region] || '#94A3B8'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
+              * “Unknown” includes reports without coordinates.
+            </p>
           </div>
         </div>
       )}
 
-      {/* Filter Bar – toggle */}
-      {showFilters && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm space-y-3">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
-              <input
-                type="text"
-                placeholder="Search by title..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); handleFilterChange(); }}
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-              />
-            </div>
-            <select
-              value={typeFilter}
-              onChange={(e) => { setTypeFilter(e.target.value); handleFilterChange(); }}
-              className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Types</option>
-              <option value="red flag">Red Flag</option>
-              <option value="intervention">Intervention</option>
-            </select>
-            <select
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); handleFilterChange(); }}
-              className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="under investigation">Under Investigation</option>
-              <option value="rejected">Rejected</option>
-              <option value="resolved">Resolved</option>
-            </select>
-          </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">
-            {filteredRecords.length} record{filteredRecords.length !== 1 && 's'} found
-          </div>
-        </div>
-      )}
-
-      {/* Records Table */}
+      {/* Records Table with filter toggle at the top */}
       <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+        {/* Table header with filter toggle */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            All Reports
+            <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500">
+              ({filteredRecords.length} total)
+            </span>
+          </h2>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`p-2 rounded-xl transition-all ${
+              showFilters
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+            }`}
+            title="Toggle filters"
+          >
+            <Filter size={18} />
+          </button>
+        </div>
+
+        {/* Filter bar (collapsible) */}
+        {showFilters && (
+          <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
+                <input
+                  type="text"
+                  placeholder="Search by title..."
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); handleFilterChange(); }}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                />
+              </div>
+              <select
+                value={typeFilter}
+                onChange={(e) => { setTypeFilter(e.target.value); handleFilterChange(); }}
+                className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Types</option>
+                <option value="red flag">Red Flag</option>
+                <option value="intervention">Intervention</option>
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(e) => { setStatusFilter(e.target.value); handleFilterChange(); }}
+                className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="under investigation">Under Investigation</option>
+                <option value="rejected">Rejected</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              {filteredRecords.length} record{filteredRecords.length !== 1 && 's'} found
+            </div>
+          </div>
+        )}
+
+        {/* Table */}
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
