@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { api } from "../utils/api";
 import { useRecords } from "../context/RecordsContext";
 import LoadingOverlay from "../components/LoadingOverlay";
+import { Eye, EyeOff } from 'lucide-react';
 
 const validate = (username, email, password, confirm, phone_number) => {
   const errors = {};
@@ -31,6 +32,10 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [overlayMessage, setOverlayMessage] = useState("");
+
+  // Visibility toggles
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -123,18 +128,40 @@ export default function SignUp() {
                 />
                 {errors.phone_number && <p className="text-red-400 text-xs mt-1 pl-1">{errors.phone_number}</p>}
               </div>
-              <div>
-                <input type="password" placeholder="Password" value={password}
-                  className={inputClass("password")}
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  className={inputClass("password") + " pr-12"}
                   onChange={e => { setPassword(e.target.value); setErrors({...errors, password: ""}); }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
                 {errors.password && <p className="text-red-400 text-xs mt-1 pl-1">{errors.password}</p>}
               </div>
-              <div>
-                <input type="password" placeholder="Confirm Password" value={confirm}
-                  className={inputClass("confirm")}
+              <div className="relative">
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  value={confirm}
+                  className={inputClass("confirm") + " pr-12"}
                   onChange={e => { setConfirm(e.target.value); setErrors({...errors, confirm: ""}); }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                  aria-label={showConfirm ? "Hide password" : "Show password"}
+                >
+                  {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
                 {errors.confirm && <p className="text-red-400 text-xs mt-1 pl-1">{errors.confirm}</p>}
               </div>
             </div>

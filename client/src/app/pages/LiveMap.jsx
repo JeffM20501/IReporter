@@ -153,7 +153,7 @@ export default function LiveMap() {
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative z-0">
         <Map
           ref={mapRef}
           incidents={filtered}

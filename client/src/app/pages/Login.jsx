@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { api } from "../utils/api";
 import { useRecords } from "../context/RecordsContext";
 import LoadingOverlay from "../components/LoadingOverlay";
+import { Eye, EyeOff } from 'lucide-react';
 
 const validate = (email, password) => {
   const errors = {};
@@ -25,6 +26,9 @@ export default function Login() {
 
   const { refreshRecords } = useRecords();
 
+  // Visibility toggle
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setServerError("");
@@ -43,7 +47,6 @@ export default function Login() {
         return;
       }
 
-      // Successful login
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
@@ -64,13 +67,10 @@ export default function Login() {
 
       navigate("/home");
     } catch (err) {
-      // Network error or backend unreachable
       console.error("Login error:", err);
       setServerError("Could not connect to the server. Please check your internet connection and try again.");
       setLoading(false);
     } finally {
-      // If we didn't navigate, turn off loading
-      // (loading is already set to false in error cases)
       if (!isRedirecting) {
         setLoading(false);
       }
@@ -106,11 +106,22 @@ export default function Login() {
                 />
                 {errors.email && <p className="text-red-400 text-xs mt-1 pl-1">{errors.email}</p>}
               </div>
-              <div>
-                <input type="password" placeholder="Password" value={password}
-                  className={inputClass("password")}
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  className={inputClass("password") + " pr-12"}
                   onChange={e => { setPassword(e.target.value); setErrors({...errors, password: ""}); }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
                 {errors.password && <p className="text-red-400 text-xs mt-1 pl-1">{errors.password}</p>}
               </div>
             </div>

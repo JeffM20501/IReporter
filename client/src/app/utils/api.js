@@ -44,6 +44,13 @@ export const api = {
       headers: authHeaders(),
     }),
 
+    changePassword:(current_pwd, new_pwd)=>
+      fetch(`${BASE}/auth/me/password`,{
+        method:'PATCH',
+        headers:authHeaders(),
+        body:JSON.stringify({current_pwd,new_pwd})
+      }),
+
   forgotPassword: (email) =>
     fetch(`${BASE}/auth/forgot-password`, {
       method: "POST",

@@ -48,3 +48,9 @@ api_v1.add_resource(
     '/auth/me/profile-pic', 
     endpoint='users_me_profile_pic'
 )
+
+api_v1.add_resource(
+    ChangePasswordResource,
+    '/auth/me/password',
+    endpoint='/auth/me/password'
+)

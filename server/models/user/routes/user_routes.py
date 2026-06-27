@@ -183,6 +183,47 @@ class CurrentUserResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': str(e)}, 400
+        
+class ChangePasswordResource(Resource):
+    @swag_from({
+        'tag':['User Profile'],
+        'summary':'Change current password',
+        'security':[{'Bearer':[]}],
+        'parameters':[{
+            'name':'body',
+            'in':'body',
+            'requred':True,
+            'schema':{
+                'type':'object',
+                'properties':{
+                    'current_pwd':{'type':'string','format':'password'},
+                    'new_pwd':{'type':'string','format':'password'},
+                },
+                'required':['current_pwd','new_pwd']
+            }
+        }],
+        'responses':{
+            200:{'description':'Password Updated'},
+            400:{'description':'Missing Fields'},
+            401:{'description':'Current password incorrect'}        
+        }
+    })
+    @login_required
+    def patch(self):
+        data=request.get_json()
+        current_pwd=data.get('current_pwd')
+        new_pwd=data.get('new_pwd')
+        
+        if not current_pwd or not new_pwd:
+            return {'message':'Current password and new password required'},400
+        
+        user=g.current_user
+        if not user.authenticate(current_pwd):
+            return {'message': 'Current password is incorrect'}, 401
+        
+        user.password=new_pwd
+        db.session.commit()
+        return {'message':'Password updated successfully'},200
     
 class RequestResetCodeResource(Resource):
     @swag_from({

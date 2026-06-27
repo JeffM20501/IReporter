@@ -11,12 +11,12 @@ import {
 import logoFallback from '../../assets/breaking.jpg';
 
 const COLORS = {
-  pending: '#F97316',      // orange
-  underInvestigation: '#8B5CF6', // purple
-  rejected: '#EF4444',     // red
-  resolved: '#10B981',     // emerald
+  pending: '#F97316',      
+  underInvestigation: '#8B5CF6', 
+  rejected: '#EF4444',     
+  resolved: '#10B981',     
   redFlag: '#EF4444',
-  intervention: '#3B82F6', // blue
+  intervention: '#3B82F6', 
 };
 
 export default function Home() {
@@ -26,7 +26,7 @@ export default function Home() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState(null);
-  const [timeRange, setTimeRange] = useState(30); // days
+  const [timeRange, setTimeRange] = useState(30); 
 
   const myRecords = records.filter(r => r.user_id === currentUser?.id);
 
@@ -76,10 +76,10 @@ export default function Home() {
   }, [stats]);
 
   
-  // const typeData = useMemo(() => [
-  //   { name: 'Red Flags', value: stats.redFlags },
-  //   { name: 'Interventions', value: stats.interventions },
-  // ], [stats]);
+  
+  
+  
+  
 
   const statusLabelMap = {
     pending: 'Pending',
