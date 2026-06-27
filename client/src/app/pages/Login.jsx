@@ -26,7 +26,7 @@ export default function Login() {
 
   const { refreshRecords } = useRecords();
 
-  // Visibility toggle
+
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {

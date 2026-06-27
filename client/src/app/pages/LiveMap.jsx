@@ -101,7 +101,7 @@ export default function LiveMap() {
 
   return (
     <div className="h-full w-full flex flex-col">
-      {/* Toolbar (unchanged) */}
+      
       <div className="flex flex-wrap items-center gap-3 p-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm z-10">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
@@ -152,7 +152,7 @@ export default function LiveMap() {
         </button>
       </div>
 
-      {/* Map */}
+      
       <div className="flex-1 relative z-0">
         <Map
           ref={mapRef}
@@ -162,7 +162,7 @@ export default function LiveMap() {
           selectedLocation={pinnedLocation}
         />
 
-        {/* Toast Notification */}
+        
         {toast.visible && (
           <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-[2000] transition-all duration-300 ease-in-out">
             <div className={`px-6 py-3 rounded-xl shadow-lg text-sm font-bold ${
@@ -177,7 +177,7 @@ export default function LiveMap() {
           </div>
         )}
 
-        {/* Pinned Location Card (unchanged) */}
+        
         {pinnedLocation && (
           <div className="absolute bottom-4 right-4 z-[1000] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white p-4 rounded-2xl shadow-2xl w-64 space-y-3">
             <div className="flex justify-between items-center">
@@ -198,7 +198,7 @@ export default function LiveMap() {
           </div>
         )}
 
-        {/* Selected Incident Card (unchanged) */}
+        
         {selected && !pinnedLocation && (
           <div className="absolute bottom-4 left-4 z-[1000] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white p-4 rounded-2xl shadow-2xl w-64 space-y-2">
             <div className="flex justify-between items-center">

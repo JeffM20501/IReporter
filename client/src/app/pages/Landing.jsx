@@ -44,7 +44,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
 
-      {/* NAVBAR */}
+      
       <header className="sticky top-0 z-50 flex justify-between items-center px-12 py-5 border-b border-slate-200 bg-white">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-lg">
@@ -68,7 +68,7 @@ export default function Landing() {
         </button>
       </header>
 
-      {/* HERO / ABOUT */}
+      
       <section id="about" className="px-12 py-24 grid md:grid-cols-2 gap-12 items-center">
         <div>
           <p className="text-slate-500 mb-3 flex items-center gap-2">
@@ -118,7 +118,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
+      
       <section id="how" className="px-12 py-20 bg-slate-50">
         <div className="text-center mb-12">
           <span className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-bold mb-4">
@@ -165,7 +165,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* WHY iReporter */}
+      
       <section id="why" className="px-12 py-16 bg-white">
         <div className="text-center mb-12">
           <Heart size={28} className="text-blue-600 mx-auto mb-2" />
@@ -196,7 +196,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* RECENT REPORTS – PUBLIC SECTION */}
+      
       <section id="recent" className="px-12 py-16 bg-slate-50">
         <div className="text-center mb-12">
           <Clock size={28} className="text-blue-600 mx-auto mb-2" />
@@ -266,7 +266,7 @@ export default function Landing() {
         )}
       </section>
 
-      {/* CALL TO ACTION – Patriotic */}
+      
       <section
         className="relative px-12 py-28 text-center text-white overflow-hidden"
         style={{
@@ -302,7 +302,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FOOTER */}
+      
       <footer className="bg-slate-900 text-white px-12 py-16">
         <div className="grid md:grid-cols-4 gap-10 text-sm">
           <div>

@@ -266,10 +266,13 @@ export default function ReportSubmission() {
               </span>
             )}
           </div>
-          <div className={`h-64 ${errors.location ? 'ring-4 ring-red-500' : ''}`}>
+          
+          <div className={`h-64 relative z-0 overflow-hidden ${errors.location ? 'ring-4 ring-red-500' : ''}`}>
             <Map
               onLocationSelect={(coords) => { setLocation(coords); setErrors({...errors, location: ""}); }}
               selectedLocation={location}
+              className="z-0"
+              style={{ zIndex: 0 }}
             />
           </div>
           {errors.location && (

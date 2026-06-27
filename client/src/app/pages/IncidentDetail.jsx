@@ -50,7 +50,6 @@ export default function IncidentDetail() {
     }, 300);
   };
 
-  // Loading states for async actions
   const [saving, setSaving] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
 
@@ -113,21 +112,15 @@ export default function IncidentDetail() {
     setSaving(true);
     try {
       await editRecord(record.id, editData);
-      
-      // Upload new images
       for (const img of newImages) {
         await api.uploadImage(record.id, img);
       }
-      
       if (newVideo) {
         await api.uploadVideo(record.id, newVideo);
       }
-      
-      // Refresh record
       const refreshed = await api.getRecord(record.id);
       const data = await refreshed.json();
       setRecord(data.data);
-      
       setEditing(false);
       setNewImages([]);
       setNewVideo(null);
@@ -141,9 +134,7 @@ export default function IncidentDetail() {
     }
   };
 
-  const handleDelete = () => {
-    setShowDeleteModal(true);
-  };
+  const handleDelete = () => setShowDeleteModal(true);
 
   const confirmDelete = async () => {
     setShowDeleteModal(false);
@@ -221,7 +212,6 @@ export default function IncidentDetail() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Admin status changer */}
             {isAdmin && !editing && (
               <div className="flex items-center gap-2">
                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Status:</label>
@@ -239,7 +229,6 @@ export default function IncidentDetail() {
               </div>
             )}
 
-            {/* Owner edit/delete buttons */}
             {canEdit && !editing && (
               <div className="flex gap-2">
                 <button onClick={handleEdit}
@@ -256,7 +245,6 @@ export default function IncidentDetail() {
               </div>
             )}
 
-            {/* Edit mode save/cancel */}
             {editing && (
               <div className="flex gap-2">
                 <button onClick={handleSave} disabled={saving}
@@ -274,8 +262,6 @@ export default function IncidentDetail() {
           </div>
         </div>
 
-        {/* Rest of the component remains unchanged, but we'll use the toast instead of alert() etc. */}
-        
         {record.images?.[0]?.image_url && (
           <div className="relative rounded-3xl overflow-hidden h-64">
             <img src={record.images[0].image_url} alt={record.title} className="w-full h-full object-cover" />
@@ -418,8 +404,15 @@ export default function IncidentDetail() {
             <p className="text-slate-900 dark:text-white font-mono text-sm">
               {placeName || (record.latitude && record.longitude ? "Loading location..." : "No location provided")}
             </p>
-            <div className="h-48 rounded-xl overflow-hidden">
-              <MapContainer center={[record.latitude, record.longitude]} zoom={14} className="h-full w-full" zoomControl={false}>
+            {/* --- FIXED MAP Z-INDEX --- */}
+            <div className="h-48 rounded-xl overflow-hidden relative z-0">
+              <MapContainer
+                center={[record.latitude, record.longitude]}
+                zoom={14}
+                className="h-full w-full"
+                zoomControl={false}
+                style={{ zIndex: 0 }}
+              >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <Marker position={[record.latitude, record.longitude]} />
               </MapContainer>
